@@ -34,11 +34,15 @@ public class CPU {
 
         for(int i=0; i<eCoreCount; i++)
             embeddedCore.add(new Core(E_CORE_TYPE, 1));
-        for(int i=0; i<pCoreCount; i++)
+        for(int i=eCoreCount; i<coreCount; i++)
             embeddedCore.add(new Core(P_CORE_TYPE, 3));
     }
 
-    // 기준에 맞는 코어 추천
+    /**
+     * 프로세스의 버스트타임을 기준으로 코어를 추천함
+     * @param burstTime : Process's BurstTime
+     * @return burstTime >= 4 ? P_CORE : E_CORE
+     */
     private int recommendCore(int burstTime){
         if(burstTime >= 4)
             return P_CORE_TYPE;
@@ -46,12 +50,16 @@ public class CPU {
         return E_CORE_TYPE;
     }
 
-    //Core에 프로세스 할당
+    /**
+     *
+     * @param process 할당해야할 프로세스
+     * @return true : 할당성공, false : wait
+     */
     private boolean assignProcess(Process process){
         int recommendedKind = recommendCore(process.getBurstTime());
         switch(recommendedKind) {
             case P_CORE_TYPE:
-                for(int i = eCoreCount; i < pCoreCount; i++){
+                for(int i = eCoreCount; i < coreCount; i++){
                     if(!embeddedCore.get(i).isRunning()) {
                         embeddedCore.get(i).setAssignedProcess(process);
                         return true;
@@ -102,7 +110,7 @@ public class CPU {
 
     public void run(){
         int time = 0;
-        List<Process> selectedProcess;
+        List<Process> selectedProcess = new ArrayList<Process>();
         System.out.println("CPU.run");
 
         while(remainWorking()) {
@@ -111,13 +119,12 @@ public class CPU {
 
             addProcess(time);
             cleanCores();
-            selectedProcess = scheduler.running(readyQueue, countRunAbleCore());
-            for(Process process:selectedProcess)
-                assignProcess(process);
+            selectedProcess.addAll(scheduler.running(readyQueue, countRunAbleCore()));
+            selectedProcess.removeIf(this::assignProcess);
+            printCoreStatuses();
             for(Core core: embeddedCore){
                 core.run();
             }
-            printCoreStatuses();
             if(time >= 100)
                 break;
             time += 1;
