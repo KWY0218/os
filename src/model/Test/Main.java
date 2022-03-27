@@ -11,18 +11,8 @@ import model.schedular.FCFS;
 
 
 public class Main {
-    public static void queueTest(Queue<Integer> queue){
-        queue.remove(2);
-    }
+
     public static void main(String[] args) {
-        Queue<Integer> queue = new LinkedList<Integer>();
-        queue.add(1);
-        queue.add(2);
-        queue.add(3);
-        queue.add(4);
-        queueTest(queue);
-        System.out.println(queue.poll());
-        System.out.println(queue.poll());
         List<Process> processList = new ArrayList<Process>();
         processList.add(new Process(0,3, 1));
         processList.add(new Process(1,2, 2));
@@ -32,5 +22,10 @@ public class Main {
         CPU mainCPU = new CPU(2,2,4, processList,new FCFS());
         mainCPU.printCoreStatuses();
         mainCPU.printProcessList();
+
+        mainCPU.run();
+
+        mainCPU.printCoreHitory();
+        System.out.println("END");
     }
 }

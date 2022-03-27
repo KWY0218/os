@@ -61,4 +61,11 @@ public class Process implements Comparable<Process>{
     public int compareTo(Process o) {
         return this.getArrivalTime() - o.getArrivalTime();
     }
+
+    @Override
+    public String toString() {
+        return "Process{" +
+                "pid=" + pid +
+                '}';
+    }
 }

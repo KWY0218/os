@@ -33,9 +33,9 @@ public class CPU {
         processList.sort(Process::compareTo);
 
         for(int i=0; i<eCoreCount; i++)
-            embeddedCore.add(new Core(E_CORE_TYPE));
+            embeddedCore.add(new Core(E_CORE_TYPE, 1));
         for(int i=0; i<pCoreCount; i++)
-            embeddedCore.add(new Core(P_CORE_TYPE));
+            embeddedCore.add(new Core(P_CORE_TYPE, 3));
     }
 
     // 기준에 맞는 코어 추천
@@ -52,7 +52,7 @@ public class CPU {
         switch(recommendedKind) {
             case P_CORE_TYPE:
                 for(int i = eCoreCount; i < pCoreCount; i++){
-                    if(embeddedCore.get(i).isRunning()) {
+                    if(!embeddedCore.get(i).isRunning()) {
                         embeddedCore.get(i).setAssignedProcess(process);
                         return true;
 
@@ -61,7 +61,7 @@ public class CPU {
                 break;
             case E_CORE_TYPE:
                 for(int i = 0; i < eCoreCount; i++) {
-                    if (embeddedCore.get(i).isRunning()) {
+                    if (!embeddedCore.get(i).isRunning()) {
                         embeddedCore.get(i).setAssignedProcess(process);
                         return true;
                     }
@@ -102,23 +102,26 @@ public class CPU {
 
     public void run(){
         int time = 0;
-        List<Process> selectedProcess = null;
+        List<Process> selectedProcess;
         System.out.println("CPU.run");
 
         while(remainWorking()) {
+            System.out.println(String.format("=====TIME : %d=====\n", time));
+            printProcessList();
 
+            addProcess(time);
+            cleanCores();
+            selectedProcess = scheduler.running(readyQueue, countRunAbleCore());
+            for(Process process:selectedProcess)
+                assignProcess(process);
+            for(Core core: embeddedCore){
+                core.run();
+            }
+            printCoreStatuses();
+            if(time >= 100)
+                break;
             time += 1;
         }
-    }
-
-    public double collectInfo(){
-        double usingElectricity = 0;
-
-        for(Core core : embeddedCore){
-            usingElectricity += core.getUsingElectricity();
-        }
-
-        return usingElectricity;
     }
 
     public boolean remainWorking(){
@@ -129,12 +132,23 @@ public class CPU {
         return false;
     }
 
+    public int countRunAbleCore(){
+        int count = 0;
+        for(Core core:embeddedCore){
+            if(!core.isRunning())
+                count++;
+        }
+
+        return count;
+    }
     public void cleanCores(){
         for(Core core:embeddedCore){
-            if(core == null || core.getAssignedProcess().getRemainWork() != 0)
+            Process inProcess = core.getAssignedProcess();
+            if(inProcess == null || core.getAssignedProcess().getRemainWork() != 0)
                 continue;
 
             core.emptyProcess();
+
         }
     }
 
@@ -150,36 +164,45 @@ public class CPU {
             System.out.print(String.format("Core Type : "));
             switch(embeddedCore.get(i).getCoreType()){
                 case P_CORE_TYPE:
-                    System.out.println("P\n");
+                    System.out.println("P");
                     break;
                 case E_CORE_TYPE:
-                    System.out.println("E\n");
+                    System.out.println("E");
                     break;
                 default:
-                    System.out.println("ERROR\n");
+                    System.out.println("ERROR");
             }
-
+            System.out.println(embeddedCore.get(i).getAssignedProcess());
         }
     }
 
     public void printProcessList(){
         for(Process process : processList){
             System.out.println(String.format("Process id : %d", process.getPid()));
-            System.out.println(String.format("AT : %d, BT : %d\n", process.getArrivalTime(), process.getBurstTime()));
+            System.out.println(String.format("AT : %d, BT : %d", process.getArrivalTime(), process.getBurstTime()));
+            System.out.println(String.format("Remain Work : %d", process.getRemainWork()));
         }
+    }
+
+    public void printCoreHitory(){
+        for(Core core : embeddedCore)
+            System.out.println(core);
     }
 }
 
 class Core{
     private Process assignedProcess;
     private double usingElectricity;
-    private int ableWork; // E(1) or P(3)
+    private final int ABLE_WORK; // E(1) or P(3)
+    private final int ELECTRICITY;
     private List<Integer> history;
 
-    public Core(int ableWork) {
-        this.ableWork = ableWork;
+    public Core(int ableWork, int electricity) {
+        this.ABLE_WORK = ableWork;
         assignedProcess = null;
         usingElectricity = 0;
+        this.ELECTRICITY = electricity;
+        history = new ArrayList<Integer>();
     }
 
     public double getUsingElectricity() {
@@ -217,14 +240,24 @@ class Core{
     }
 
     public void run(){
-        if(assignedProcess != null)
+        if(assignedProcess != null) {
+            usingElectricity+=ELECTRICITY;
             history.add(assignedProcess.getPid());
-        else
+            assignedProcess.worked(ABLE_WORK);
+        }
+        else {
+            usingElectricity += 0.1;
             history.add(-1);
-        assignedProcess.worked(ableWork);
+        }
+
     }
 
     public int getCoreType() {
-        return ableWork;
+        return ABLE_WORK;
+    }
+
+    @Override
+    public String toString() {
+        return history.toString();
     }
 }
