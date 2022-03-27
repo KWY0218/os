@@ -85,7 +85,13 @@ public int getName()
 const int MAX_NUMBER = 10;
 ```
 
-- Pakage (소문자만 사용)
+- Pakage 
+
+'''java
+com.os.(구분내용)
+'''
+
+ex) com.os.view
 
 ## Design Pattern
 
