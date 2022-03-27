@@ -87,11 +87,11 @@ const int MAX_NUMBER = 10;
 
 - Pakage 
 
-'''java
-com.os.(구분내용)
-'''
+```java
+ team.os.()
+```
 
-ex) com.os.view
+ex) team.os.view
 
 ## Design Pattern
 
