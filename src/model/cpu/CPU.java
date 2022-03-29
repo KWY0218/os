@@ -11,7 +11,9 @@ import java.util.Queue;
 
 
 public class CPU {
-
+    /*
+    각각의 코어는 처리능력으로 구분함
+     */
     private final int P_CORE_TYPE = 3;
     private final int E_CORE_TYPE = 1;
     private int pCoreCount;
@@ -22,10 +24,10 @@ public class CPU {
     private Queue<Process> readyQueue;
     private Scheduler scheduler;
 
-    public CPU(int pCoreCount, int eCoreCount, int coreCount, List<Process> processList, Scheduler scheduler) {
+    public CPU(int pCoreCount, int eCoreCount, List<Process> processList, Scheduler scheduler) {
         this.pCoreCount = pCoreCount;
         this.eCoreCount = eCoreCount;
-        this.coreCount = coreCount;
+        this.coreCount = coreCount = pCoreCount + eCoreCount;
         this.scheduler = scheduler;
         this.embeddedCore = new ArrayList<Core>();
         this.readyQueue = new LinkedList<Process>();
@@ -40,6 +42,8 @@ public class CPU {
 
     /**
      * 프로세스의 버스트타임을 기준으로 코어를 추천함
+     * burstTime을 입력받고 해당 BurstTime이 4이상일 경우 P_CORE_TYPE = 3
+     * 아닐 경우, E_CORE_TYPE = 1을 반환함
      * @param burstTime : Process's BurstTime
      * @return burstTime >= 4 ? P_CORE : E_CORE
      */
@@ -51,7 +55,11 @@ public class CPU {
     }
 
     /**
-     *
+     * 프로세스를 전달받아 해당 프로세스를 코어에 등록합니다.
+     * 1. CPU.recommendCore() 를 이용해 추천 코어를 설장한다.
+     * 2. 추천 코어가 비어있을 경우, 해당 코어에 할당한다. -> true
+     * 3. 빈 코어가 있는지 확인한다. 있다면 할당한다 -> true
+     * 4. 할당 불가능 -> false
      * @param process 할당해야할 프로세스
      * @return true : 할당성공, false : wait
      */
@@ -92,7 +100,7 @@ public class CPU {
 
     /**
 
-     * ProcessList에서 arrivalTime이 time인 Process readyQueue에 추가
+     * Time정보를 입력받아. 입력받은 ProcessList에서 현재 Time정보에 맞는 ArrivalTime을 레디큐에 추가한다.
 
      *
 
@@ -108,29 +116,44 @@ public class CPU {
         }
     }
 
+    /**
+     * 스케줄링을 실행한다.
+     * 프로세스리스트에서 작업량이 남은 프로세스가 존재한다면
+     * 1. addProcess를 이용하여, 현재 시간에 도착한 프로세스를 레디큐에 추가한다.
+     * 2. 코어중 빈 코어가 있다면, 할당된 코어를 null로 변경한다.
+     * 3. 스케줄러해서 반환된 현재 실행해야할 프로세스리스트를 selectedProcess에 저장한다.
+     * 4. 선택된 프로세스중 assignProcess를 이용하여 코어에 할당 성공한 경우 selectedProcess에서 해당 객체를 삭제한다.
+     * 5. 각 코어를 동작시킨다.
+     * 6. 시간을 증가시킨다.
+     */
     public void run(){
         int time = 0;
         List<Process> selectedProcess = new ArrayList<Process>();
         System.out.println("CPU.run");
 
         while(remainWorking()) {
-            System.out.println(String.format("=====TIME : %d=====\n", time));
-            printProcessList();
+            //System.out.println(String.format("=====TIME : %d=====\n", time));
+            //printProcessList();
 
             addProcess(time);
             cleanCores();
             selectedProcess.addAll(scheduler.running(readyQueue, countRunAbleCore()));
             selectedProcess.removeIf(this::assignProcess);
-            printCoreStatuses();
+            //printCoreStatuses();
             for(Core core: embeddedCore){
                 core.run();
             }
-            if(time >= 100)
-                break;
+//            if(time >= 100)
+//                break;
             time += 1;
         }
     }
 
+    /**
+     * 전체 프로세스를 조사하여, 잔여 작업량이 남은 경우 -> true
+     * 아니면 -> false
+     * @return work is remaining
+     */
     public boolean remainWorking(){
         for(Process process : processList){
             if(process.getRemainWork() > 0)
@@ -139,6 +162,10 @@ public class CPU {
         return false;
     }
 
+    /**
+     * 사용 가능한 코어를 조사하여, 그 개수를 반환한다.
+     * @return
+     */
     public int countRunAbleCore(){
         int count = 0;
         for(Core core:embeddedCore){
@@ -148,6 +175,7 @@ public class CPU {
 
         return count;
     }
+
     public void cleanCores(){
         for(Core core:embeddedCore){
             Process inProcess = core.getAssignedProcess();

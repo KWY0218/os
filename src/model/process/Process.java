@@ -7,7 +7,7 @@ public class Process implements Comparable<Process>{
     private int remainWork;
     private int runningTime;
 
-    public Process(int arrivalTime, int burstTime, int pid) {
+    public Process(int pid, int arrivalTime, int burstTime) {
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.pid = pid;

@@ -14,16 +14,16 @@ public class Main {
 
     public static void main(String[] args) {
         List<Process> processList = new ArrayList<Process>();
-        processList.add(new Process(0,3, 1));
-        processList.add(new Process(1,2, 2));
-        processList.add(new Process(3,5, 3));
-        processList.add(new Process(2,2, 4));
-        processList.add(new Process(0,1, 5));
-        processList.add(new Process(0,1, 6));
-        processList.add(new Process(0,1, 7));
-        processList.add(new Process(0,1, 8));
+        processList.add(new Process(1, 0,3));
+        processList.add(new Process(2, 1,2));
+        processList.add(new Process(3, 3,5));
+        processList.add(new Process(4, 2,2));
+        processList.add(new Process(5, 0,1));
+        processList.add(new Process(6, 0,1));
+        processList.add(new Process(7, 0,1));
+        processList.add(new Process(8, 0,1));
 
-        CPU mainCPU = new CPU(2,2,4, processList,new FCFS());
+        CPU mainCPU = new CPU(2,1, processList,new FCFS());
         mainCPU.printCoreStatuses();
         mainCPU.printProcessList();
 
