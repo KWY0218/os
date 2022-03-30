@@ -176,6 +176,11 @@ public class CPU {
         return count;
     }
 
+    /**
+     * 각 코어별 할당된 작업이 끝난 코어를 조사한다.
+     * 만약 끝난 코어가 존재한다면, 해당 코어의 할당 프로세스의 endTime을 설정한다.
+     * @param time
+     */
     public void cleanCores(int time){
         for(Core core:embeddedCore){
             Process inProcess = core.getAssignedProcess();
