@@ -14,7 +14,7 @@ public class CPU {
     /*
     각각의 코어는 처리능력으로 구분함
      */
-    private final int P_CORE_TYPE = 3;
+    private final int P_CORE_TYPE = 2;
     private final int E_CORE_TYPE = 1;
     private int pCoreCount;
     private int eCoreCount;
@@ -136,9 +136,9 @@ public class CPU {
             //printProcessList();
 
             addProcess(time);
-            cleanCores();
+            cleanCores(time);
             selectedProcess.addAll(scheduler.running(readyQueue, countRunAbleCore()));
-            selectedProcess.removeIf(this::assignProcess);
+            selectedProcess.removeIf(this::assignProcess);                              // 조건문으로 변경 -> 프로세스 삭제시,  설정 가능, time 인수로 전달
             //printCoreStatuses();
             for(Core core: embeddedCore){
                 core.run();
@@ -176,12 +176,12 @@ public class CPU {
         return count;
     }
 
-    public void cleanCores(){
+    public void cleanCores(int time){
         for(Core core:embeddedCore){
             Process inProcess = core.getAssignedProcess();
             if(inProcess == null || core.getAssignedProcess().getRemainWork() != 0)
                 continue;
-
+            core.getAssignedProcess().setEndTime(time);
             core.emptyProcess();
 
         }

@@ -5,7 +5,7 @@ public class Process implements Comparable<Process>{
     private int burstTime;
     private int pid;
     private int remainWork;
-    private int runningTime;
+    private int endTime;
 
     public Process(int pid, int arrivalTime, int burstTime) {
         this.arrivalTime = arrivalTime;
@@ -42,16 +42,20 @@ public class Process implements Comparable<Process>{
         return remainWork;
     }
 
+    public int getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(int endTime) {
+        this.endTime = endTime;
+    }
+
     public void setRemainWork(int remainWork) {
         this.remainWork = remainWork;
     }
 
-    public void setRunningTime(int runningTime) {
-        this.runningTime = runningTime;
-    }
-
     public void worked(int able){
-        remainWork = remainWork - able;
+        this.remainWork = this.remainWork - able;
 
         if(remainWork < 0)
             remainWork = 0;
