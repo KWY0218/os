@@ -1,6 +1,5 @@
 package team.os.ui;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 
@@ -324,10 +323,16 @@ public class UI extends JFrame {
 		panel_1.add(textField_4);
 		
 		btnNewButton_3 = new JButton("-");
+		btnNewButton_3.addActionListener(e -> {
+			addCoreSize(textField_4, -1);
+		});
 		btnNewButton_3.setBounds(198, 6, 26, 26);
 		panel_1.add(btnNewButton_3);
 		
 		btnNewButton_4 = new JButton("+");
+		btnNewButton_4.addActionListener(e -> {
+			addCoreSize(textField_4, 1);
+		});
 		btnNewButton_4.setBounds(170, 6, 26, 26);
 		panel_1.add(btnNewButton_4);
 		
@@ -345,10 +350,16 @@ public class UI extends JFrame {
 		panel_1.add(textField_5);
 		
 		btnNewButton_5 = new JButton("+");
+		btnNewButton_5.addActionListener(e -> {
+			addCoreSize(textField_5, 1);
+		});
 		btnNewButton_5.setBounds(170, 38, 26, 26);
 		panel_1.add(btnNewButton_5);
 		
 		btnNewButton_6 = new JButton("-");
+		btnNewButton_6.addActionListener(e -> {
+			addCoreSize(textField_5, -1);
+		});
 		btnNewButton_6.setBounds(198, 38, 26, 26);
 		panel_1.add(btnNewButton_6);
 		
@@ -394,4 +405,32 @@ public class UI extends JFrame {
 		table_3 = new JTable();
 		scrollPane_3.setViewportView(table_3);
 	}
+	
+	/**
+	 * @param field
+	 * @param value
+	 */
+	
+	private void addCoreSize(JTextField field, int value) {
+		
+		int now = Integer.parseInt(field.getText());
+		
+		if(now + value >= 0)
+		
+			field.setText(String.valueOf(now + value));
+		
+	}
+	
+	private void addProcess() {
+		
+	}
+	
+	private void resetProcess() {
+		
+	}
+
+	private void runScheduling() {
+		
+	}
+	
 }
