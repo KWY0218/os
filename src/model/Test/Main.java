@@ -22,13 +22,17 @@ public class Main {
         processList.add(new Process(4, 2,5));
         processList.add(new Process(5, 0,1));
         processList.add(new Process(6, 0,3));
-        CPU mainCPU = new CPU(4,0, processList,new FCFS());
+        processList.add(new Process(7, 0,3));
+        processList.add(new Process(8, 0,3));
+        processList.add(new Process(9, 0,3));
+        processList.add(new Process(10, 0,3));
+        CPU mainCPU = new CPU(2,2, processList,new FCFS());
         mainCPU.printCoreStatuses();
         mainCPU.printProcessList();
 
         mainCPU.run();
 
-        mainCPU.printCoreHitory();
+        mainCPU.printCoreHistory();
         System.out.println("END");
     }
 }

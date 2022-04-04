@@ -189,13 +189,13 @@ public class CPU {
         System.out.println("CPU.run start\n");
 
         while(remainWorking()) {
-//            System.out.println(String.format("=====TIME : %d=====\n", time));
+            System.out.println(String.format("=====TIME : %d=====\n", time));
             Queue<Process> selectedProcess = new LinkedList<Process>();
             schedulerQueue = new LinkedList<Process>();
 //            printProcessList();
-
             addProcess(time);
             cleanCores(time);
+            printReadyQueue();
             selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
 
             int size = selectedProcess.size();
@@ -233,19 +233,6 @@ public class CPU {
         return false;
     }
 
-    /**
-     * 사용 가능한 코어를 조사하여, 그 개수를 반환한다.
-     * @return
-     */
-    public int countRunAbleCore(){
-        int count = 0;
-        for(Core core:embeddedCore){
-            if(!core.isRunning())
-                count++;
-        }
-
-        return count;
-    }
 
     /**
      * 각 코어별 할당된 작업이 끝난 코어를 조사한다.
@@ -296,9 +283,13 @@ public class CPU {
         }
     }
 
-    public void printCoreHitory(){
+    public void printCoreHistory(){
         for(Core core : embeddedCore)
             System.out.println(core);
+    }
+
+    public void printReadyQueue(){
+        System.out.println("Ready Queue\n" + readyQueue + "\n");
     }
 }
 
