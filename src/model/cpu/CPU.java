@@ -25,7 +25,7 @@ public class CPU {
     private Queue<Process> schedulerQueue;
     private Scheduler scheduler;
 
-    public CPU(int pCoreCount, int eCoreCount, List<Process> processList, Scheduler scheduler) {
+    public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler) {
         this.pCoreCount = pCoreCount;
         this.eCoreCount = eCoreCount;
         this.coreCount = coreCount = pCoreCount + eCoreCount;
@@ -138,15 +138,15 @@ public class CPU {
      */
     private boolean assignProcess(Process process){
         if (assignProcessKind(process)){
-            System.out.println("Kind");
+//            System.out.println("Kind");
             return true;
         }
         else if(assignProcessEmpty(process)){
-            System.out.println("Empty");
+//            System.out.println("Empty");
             return true;
         }
         else if(assignProcessScheduler(process)){
-            System.out.println("Scheduler");
+//            System.out.println("Scheduler");
             return true;
         }
         else{
@@ -186,37 +186,38 @@ public class CPU {
      */
     public void run(){
         int time = 0;
-        System.out.println("CPU.run");
+        System.out.println("CPU.run start\n");
 
         while(remainWorking()) {
-            System.out.println(String.format("=====TIME : %d=====\n", time));
+//            System.out.println(String.format("=====TIME : %d=====\n", time));
             Queue<Process> selectedProcess = new LinkedList<Process>();
             schedulerQueue = new LinkedList<Process>();
-            printProcessList();
+//            printProcessList();
 
             addProcess(time);
             cleanCores(time);
             selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
-            System.out.println("readyQueue Size : " + readyQueue.size());
+
             int size = selectedProcess.size();
             for(int i=0; i<size; i++){
                 Process process = selectedProcess.poll();
-                System.out.println(selectedProcess.size());
                 if(!assignProcess(process)) {
                     schedulerQueue.add(process);
                 }
             }
-            printCoreStatuses();
-            System.out.println("readyQueue Size : " + readyQueue.size());
+//            printCoreStatuses();//running
+
             schedulerQueue.addAll(readyQueue);
             readyQueue = schedulerQueue;
             for(Core core: embeddedCore){
                 core.run();
             }
-            if(time >= 10)
-                break;
+//            if(time >= 10)
+//                break;
             time += 1;
         }
+        System.out.println("CPU.run end\n");
+        printCoreStatuses();//end
     }
 
     /**
@@ -271,6 +272,7 @@ public class CPU {
     public void printCoreStatuses(){
         for(int i=0; i<coreCount; i++){
             System.out.println(String.format("Core #%d", i));
+            System.out.println(String.format("Core use : %f", embeddedCore.get(i).getUsingElectricity()));
             System.out.print(String.format("Core Type : "));
             switch(embeddedCore.get(i).getCoreType()){
                 case P_CORE_TYPE:
@@ -282,7 +284,7 @@ public class CPU {
                 default:
                     System.out.println("ERROR");
             }
-            System.out.println(embeddedCore.get(i).getAssignedProcess());
+            System.out.println("assigned process : " + embeddedCore.get(i).getAssignedProcess() + "\n");
         }
     }
 
@@ -290,7 +292,7 @@ public class CPU {
         for(Process process : processList){
             System.out.println(String.format("Process id : %d", process.getPid()));
             System.out.println(String.format("AT : %d, BT : %d", process.getArrivalTime(), process.getBurstTime()));
-            System.out.println(String.format("Remain Work : %d", process.getRemainWork()));
+            System.out.println(String.format("Remain Work : %d\n", process.getRemainWork()));
         }
     }
 

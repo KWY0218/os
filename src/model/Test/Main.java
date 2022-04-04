@@ -16,13 +16,13 @@ public class Main {
 
 
         List<Process> processList = new ArrayList<Process>();
-//        processList.add(new Process(1, 0,3));
-//        processList.add(new Process(2, 1,2));
-//        processList.add(new Process(3, 3,5));
+        processList.add(new Process(1, 0,3));
+        processList.add(new Process(2, 1,2));
+        processList.add(new Process(3, 3,5));
         processList.add(new Process(4, 2,5));
-//        processList.add(new Process(5, 0,1));
-
-        CPU mainCPU = new CPU(1,0, processList,new FCFS());
+        processList.add(new Process(5, 0,1));
+        processList.add(new Process(6, 0,3));
+        CPU mainCPU = new CPU(4,0, processList,new FCFS());
         mainCPU.printCoreStatuses();
         mainCPU.printProcessList();
 

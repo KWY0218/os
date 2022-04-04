@@ -10,12 +10,11 @@ public class FCFS implements Scheduler{
 
     @Override
     public Queue<Process> running(Queue<Process> processList, int counter) {
-        System.out.println("FCFS Run");
+//        System.out.println("FCFS Run");
         Queue<Process> resultList = new LinkedList<Process>();
         for(int i=0; (i < counter && !processList.isEmpty()); i++){
             resultList.add(processList.poll());
         }
-        System.out.println("queue Size : " + resultList.size());
         return resultList;
     }
 
