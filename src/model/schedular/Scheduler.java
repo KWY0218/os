@@ -6,5 +6,7 @@ import java.util.List;
 import java.util.Queue;
 
 public interface Scheduler {
-    List<Process> running(Queue<Process> processList, int counter);
+    Queue<Process> running(Queue<Process> processList, int counter);
+
+    boolean compareProcess(Process runningProcess, Process inProcess);
 }

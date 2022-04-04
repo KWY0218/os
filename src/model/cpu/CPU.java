@@ -22,6 +22,7 @@ public class CPU {
     private List<Core> embeddedCore;
     private List<Process> processList;
     private Queue<Process> readyQueue;
+    private Queue<Process> schedulerQueue;
     private Scheduler scheduler;
 
     public CPU(int pCoreCount, int eCoreCount, List<Process> processList, Scheduler scheduler) {
@@ -53,7 +54,79 @@ public class CPU {
 
         return E_CORE_TYPE;
     }
+    private void changeProcess(Core core, Process changeProcess){
+        Process temp = core.emptyProcess();
+        if(core.emptyProcess() != null)
+            readyQueue.add(temp);
+        core.setAssignedProcess(changeProcess);
+    }
+    private boolean assignProcessEmpty(Process process){
+        for(int i = 0; i< coreCount; i++){
+            if (!embeddedCore.get(i).isRunning()) {
+                embeddedCore.get(i).setAssignedProcess(process);
+                return true;
+            }
+        }
+        //wait
+        return false;
+    }
+    private boolean assignProcessKind(Process process){
+        int recommendedKind = recommendCore(process.getBurstTime());
+        switch(recommendedKind) {
+            case P_CORE_TYPE:
+                for(int i = eCoreCount; i < coreCount; i++){
+                    if(!embeddedCore.get(i).isRunning()) {
+                        changeProcess(embeddedCore.get(i), process);
+                        return true;
 
+                    }
+                }
+                break;
+            case E_CORE_TYPE:
+                for(int i = 0; i < eCoreCount; i++) {
+                    if (!embeddedCore.get(i).isRunning()) {
+                        changeProcess(embeddedCore.get(i), process);
+                        return true;
+                    }
+                }
+                break;
+            default:
+                //throw assignProcessError
+                System.out.println("assignProcessError Process id : " + process.getPid());
+        }
+
+        //wait
+        return false;
+    }
+
+    private boolean assignProcessScheduler(Process process){
+        int recommendedKind = recommendCore(process.getBurstTime());
+        switch(recommendedKind) {
+            case P_CORE_TYPE:
+                for(int i = eCoreCount; i < coreCount; i++){
+                    if(!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process)) {
+                        changeProcess(embeddedCore.get(i), process);
+                        return true;
+
+                    }
+                }
+                break;
+            case E_CORE_TYPE:
+                for(int i = 0; i < eCoreCount; i++) {
+                    if (!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process)) {
+                        changeProcess(embeddedCore.get(i), process);
+                        return true;
+                    }
+                }
+                break;
+            default:
+                //throw assignProcessError
+                System.out.println("assignProcessError Process id : " + process.getPid());
+        }
+
+        //wait
+        return false;
+    }
     /**
      * 프로세스를 전달받아 해당 프로세스를 코어에 등록합니다.
      * 1. CPU.recommendCore() 를 이용해 추천 코어를 설장한다.
@@ -64,38 +137,23 @@ public class CPU {
      * @return true : 할당성공, false : wait
      */
     private boolean assignProcess(Process process){
-        int recommendedKind = recommendCore(process.getBurstTime());
-        switch(recommendedKind) {
-            case P_CORE_TYPE:
-                for(int i = eCoreCount; i < coreCount; i++){
-                    if(!embeddedCore.get(i).isRunning()) {
-                        embeddedCore.get(i).setAssignedProcess(process);
-                        return true;
-
-                    }
-                }
-                break;
-            case E_CORE_TYPE:
-                for(int i = 0; i < eCoreCount; i++) {
-                    if (!embeddedCore.get(i).isRunning()) {
-                        embeddedCore.get(i).setAssignedProcess(process);
-                        return true;
-                    }
-                }
-                break;
-            default:
-                //throw assignProcessError
-                System.out.println("assignProcessError Process id : " + process.getPid());
+        if (assignProcessKind(process)){
+            System.out.println("Kind");
+            return true;
         }
-
-        for(int i = 0; i< coreCount; i++){
-            if (!embeddedCore.get(i).isRunning()) {
-                embeddedCore.get(i).setAssignedProcess(process);
-                return true;
-            }
+        else if(assignProcessEmpty(process)){
+            System.out.println("Empty");
+            return true;
         }
-        //wait
-        return false;
+        else if(assignProcessScheduler(process)){
+            System.out.println("Scheduler");
+            return true;
+        }
+        else{
+            //wait
+            return false;
+        } // scheduler Queue에 넣어주기
+
     }
 
     /**
@@ -128,23 +186,35 @@ public class CPU {
      */
     public void run(){
         int time = 0;
-        List<Process> selectedProcess = new ArrayList<Process>();
         System.out.println("CPU.run");
 
         while(remainWorking()) {
-            //System.out.println(String.format("=====TIME : %d=====\n", time));
-            //printProcessList();
+            System.out.println(String.format("=====TIME : %d=====\n", time));
+            Queue<Process> selectedProcess = new LinkedList<Process>();
+            schedulerQueue = new LinkedList<Process>();
+            printProcessList();
 
             addProcess(time);
             cleanCores(time);
-            selectedProcess.addAll(scheduler.running(readyQueue, countRunAbleCore()));
-            selectedProcess.removeIf(this::assignProcess);                              // 조건문으로 변경 -> 프로세스 삭제시,  설정 가능, time 인수로 전달
-            //printCoreStatuses();
+            selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
+            System.out.println("readyQueue Size : " + readyQueue.size());
+            int size = selectedProcess.size();
+            for(int i=0; i<size; i++){
+                Process process = selectedProcess.poll();
+                System.out.println(selectedProcess.size());
+                if(!assignProcess(process)) {
+                    schedulerQueue.add(process);
+                }
+            }
+            printCoreStatuses();
+            System.out.println("readyQueue Size : " + readyQueue.size());
+            schedulerQueue.addAll(readyQueue);
+            readyQueue = schedulerQueue;
             for(Core core: embeddedCore){
                 core.run();
             }
-//            if(time >= 100)
-//                break;
+            if(time >= 10)
+                break;
             time += 1;
         }
     }
@@ -257,8 +327,10 @@ class Core{
         this.assignedProcess = assignedProcess;
     }
 
-    public void emptyProcess(){
+    public Process emptyProcess(){
+        Process temp = assignedProcess;
         assignedProcess = null;
+        return temp;
     }
 
     /**
