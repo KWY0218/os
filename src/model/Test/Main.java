@@ -27,12 +27,10 @@ public class Main {
         processList.add(new Process(9, 0,3));
         processList.add(new Process(10, 0,3));
         CPU mainCPU = new CPU(2,2, processList,new FCFS());
-        mainCPU.printCoreStatuses();
-        mainCPU.printProcessList();
 
-        mainCPU.run();
+        mainCPU.run(false);
 
-        mainCPU.printCoreHistory();
+        mainCPU.printEndCoreStatus();
         System.out.println("END");
     }
 }

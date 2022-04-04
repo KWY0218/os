@@ -132,6 +132,7 @@ public class CPU {
      * 1. CPU.recommendCore() 를 이용해 추천 코어를 설장한다.
      * 2. 추천 코어가 비어있을 경우, 해당 코어에 할당한다. -> true
      * 3. 빈 코어가 있는지 확인한다. 있다면 할당한다 -> true
+     * 4. 스케줄러에 의해 선택된 프로세스가 기존 프로세스보다 우선적으로 처리해야한다면 할당한다. -> true
      * 4. 할당 불가능 -> false
      * @param process 할당해야할 프로세스
      * @return true : 할당성공, false : wait
@@ -177,27 +178,36 @@ public class CPU {
     /**
      * 스케줄링을 실행한다.
      * 프로세스리스트에서 작업량이 남은 프로세스가 존재한다면
-     * 1. addProcess를 이용하여, 현재 시간에 도착한 프로세스를 레디큐에 추가한다.
-     * 2. 코어중 빈 코어가 있다면, 할당된 코어를 null로 변경한다.
+     * 1. 현재 시간에 도착한 프로세스를 레디큐에 추가한다.(addProcess)
+     * 2. 코어중 빈 코어가 있다면, 할당된 코어를 null로 변경한다. (cleanCores)
      * 3. 스케줄러해서 반환된 현재 실행해야할 프로세스리스트를 selectedProcess에 저장한다.
      * 4. 선택된 프로세스중 assignProcess를 이용하여 코어에 할당 성공한 경우 selectedProcess에서 해당 객체를 삭제한다.
+     * 4.1 선택되지 않은 프로세스를 schedulerQueue에 임시로 저장한다.
+     * 4.2 schedulerQueue + readyQueue + 할당 취소된 프로세스 순서로 readyQueue를 재설정한다.
      * 5. 각 코어를 동작시킨다.
      * 6. 시간을 증가시킨다.
      */
-    public void run(){
+    public void run(boolean debugFlag){
         int time = 0;
-        System.out.println("CPU.run start\n");
+        if(debugFlag){
+            System.out.println("CPU.run start\n");
+            printCoreStatuses();
+            printProcessList();
+        }
+
 
         while(remainWorking()) {
-            System.out.println(String.format("=====TIME : %d=====\n", time));
+
             Queue<Process> selectedProcess = new LinkedList<Process>();
             schedulerQueue = new LinkedList<Process>();
-//            printProcessList();
             addProcess(time);
+            if(debugFlag) {
+                System.out.println(String.format("=====TIME : %d=====\n", time));
+                printProcessList();
+                printReadyQueue();
+            }
             cleanCores(time);
-            printReadyQueue();
             selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
-
             int size = selectedProcess.size();
             for(int i=0; i<size; i++){
                 Process process = selectedProcess.poll();
@@ -216,8 +226,10 @@ public class CPU {
 //                break;
             time += 1;
         }
-        System.out.println("CPU.run end\n");
-        printCoreStatuses();//end
+        if(debugFlag) {
+            System.out.println("CPU.run end\n");
+            printCoreStatuses();//end
+        }
     }
 
     /**
@@ -291,6 +303,13 @@ public class CPU {
     public void printReadyQueue(){
         System.out.println("Ready Queue\n" + readyQueue + "\n");
     }
+
+    public void printEndCoreStatus(){
+        for(int i = 0; i < coreCount; i++) {
+            Core core = embeddedCore.get(i);
+            System.out.println(String.format("#%d Core\nUse Electricity : %.2f W \n",i , core.getUsingElectricity()) + core + "\n");
+        }
+    }
 }
 
 class Core{
@@ -324,16 +343,6 @@ class Core{
         Process temp = assignedProcess;
         assignedProcess = null;
         return temp;
-    }
-
-    /**
-     * return id of assignedProcess or return -1 if assignedProcess is null
-     * @return null:-1 or pid:assignedProcess.getPid
-     */
-    public int getAssignedProcessId(){
-        if(assignedProcess == null)
-            return - 1;
-        return assignedProcess.getPid();
     }
 
     public Process getAssignedProcess() {
