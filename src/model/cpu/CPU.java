@@ -196,18 +196,18 @@ public class CPU {
         }
 
 
-        while(remainWorking()) {
+        while(remainWorking()) {                                                                                        //작업 남음
 
-            Queue<Process> selectedProcess = new LinkedList<Process>();
-            schedulerQueue = new LinkedList<Process>();
-            addProcess(time);
+            Queue<Process> selectedProcess = new LinkedList<Process>();                                                 // 스케줄링에 의해 선택될 프로세스 큐
+            schedulerQueue = new LinkedList<Process>();                                                                 //스케줄링에 의해 선택되었으나, wait 처리된 (대기중인) 프로세스 큐
+            addProcess(time);                                                                                           //프로세스 리스트 -> readyQueue 추가
             if(debugFlag) {
                 System.out.println(String.format("=====TIME : %d=====\n", time));
                 printProcessList();
                 printReadyQueue();
             }
-            cleanCores(time);
-            selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
+            cleanCores(time);                                                                                           //기존 코에어 remainWork이 0인, 작업이 끝난 프로세스 정리
+            selectedProcess.addAll(scheduler.running(readyQueue, coreCount));                                           //스케줄러에 의해 선택된 프로세스들을 selectedProcess에 추가
             int size = selectedProcess.size();
             for(int i=0; i<size; i++){
                 Process process = selectedProcess.poll();
@@ -318,7 +318,7 @@ class Core{
     private final int ABLE_WORK; // E(1) or P(2)
     private final int ELECTRICITY;
     private List<Integer> history;
-    private bool remainPower = false;
+    private boolean remainPower = false;
 
     public Core(int ableWork, int electricity) {
         this.ABLE_WORK = ableWork;
@@ -337,7 +337,10 @@ class Core{
     }
 
     public void setAssignedProcess(Process assignedProcess) {
+        if(remainPower)
+            assignedProcess.decreaseWork();
         this.assignedProcess = assignedProcess;
+        remainPower = false;
     }
 
     public Process emptyProcess(){
@@ -358,20 +361,19 @@ class Core{
         if(assignedProcess != null) {
             usingElectricity+=ELECTRICITY;
             history.add(assignedProcess.getPid());
-            
-            if(remainPower > 0)
-                assignedProcess.setRemainWork(assignedProcess.getRemainWork() - 1));
-            assignedProcess.setRemainWork(assignedProcess.getRemainWork() - ABLE_WORK);
+
+            assignedProcess.worked(ABLE_WORK);
             
             if(assignedProcess.getRemainWork() < 0){
-                remainWork = true;
+                remainPower = true;
                 assignedProcess.setRemainWork(0);
             }
         }
+
         else {
-            usingElectricity += 0.1;
             if(remainPower)
                 remainPower = false;
+            usingElectricity += 0.1;
             history.add(-1);
         }
 
