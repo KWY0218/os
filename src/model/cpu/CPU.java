@@ -315,9 +315,10 @@ public class CPU {
 class Core{
     private Process assignedProcess;
     private double usingElectricity;
-    private final int ABLE_WORK; // E(1) or P(3)
+    private final int ABLE_WORK; // E(1) or P(2)
     private final int ELECTRICITY;
     private List<Integer> history;
+    private bool remainPower = false;
 
     public Core(int ableWork, int electricity) {
         this.ABLE_WORK = ableWork;
@@ -357,10 +358,20 @@ class Core{
         if(assignedProcess != null) {
             usingElectricity+=ELECTRICITY;
             history.add(assignedProcess.getPid());
-            assignedProcess.worked(ABLE_WORK);
+            
+            if(remainPower > 0)
+                assignedProcess.setRemainWork(assignedProcess.getRemainWork() - 1));
+            assignedProcess.setRemainWork(assignedProcess.getRemainWork() - ABLE_WORK);
+            
+            if(assignedProcess.getRemainWork() < 0){
+                remainWork = true;
+                assignedProcess.setRemainWork(0);
+            }
         }
         else {
             usingElectricity += 0.1;
+            if(remainPower)
+                remainPower = false;
             history.add(-1);
         }
 
