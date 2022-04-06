@@ -14,7 +14,7 @@ public class Core {
 		
 	}
 	
-	public int getPower() {
+	public int getPower() { 
 		
 		return power;
 		
@@ -32,9 +32,15 @@ public class Core {
 		
 	}
 	
-	public void setRemainPower(int mRemainPower) {
+	public int addRemainPower(int value) {
 		
-		remainPower = mRemainPower;
+		return remainPower += value;
+		
+	}
+	
+	public int subRemainPower(int value) {
+		
+		return remainPower -= value;
 		
 	}
 	
@@ -56,9 +62,11 @@ public class Core {
 		
 	}
 	
-	public void work() {
+	public Core work() {
 		
 		working = true;
+		
+		return this;
 		
 	}
 	

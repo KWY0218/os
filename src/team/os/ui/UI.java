@@ -9,6 +9,10 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import com.formdev.flatlaf.FlatDarkLaf;
+
+import team.os.algorithm.FCFS;
+import team.os.simulator.History;
+
 import javax.swing.border.LineBorder;
 import java.awt.Color;
 import javax.swing.JLabel;
@@ -430,6 +434,13 @@ public class UI extends JFrame {
 	}
 
 	private void runScheduling() {
+		
+		// 간트 차트를 그린다.
+		drawGanttChart(new History());
+		
+	}
+	
+	private void drawGanttChart(History history) {
 		
 	}
 	
