@@ -24,6 +24,7 @@ public class CPU {
     private Queue<Process> readyQueue;
     private Queue<Process> schedulerQueue;
     private Scheduler scheduler;
+    private Queue<Process> selectedProcess;
 
     public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler) {
         this.pCoreCount = pCoreCount;
@@ -57,7 +58,7 @@ public class CPU {
     private void changeProcess(Core core, Process changeProcess){
         Process temp = core.emptyProcess();
         if(core.emptyProcess() != null)
-            readyQueue.add(temp);
+            selectedProcess.add(temp);
         core.setAssignedProcess(changeProcess);
     }
     private boolean assignProcessEmpty(Process process){
@@ -198,7 +199,7 @@ public class CPU {
 
         while(remainWorking()) {                                                                                        //작업 남음
 
-            Queue<Process> selectedProcess = new LinkedList<Process>();                                                 // 스케줄링에 의해 선택될 프로세스 큐
+            selectedProcess = new LinkedList<Process>();                                                       // 스케줄링에 의해 선택될 프로세스 큐
             schedulerQueue = new LinkedList<Process>();                                                                 //스케줄링에 의해 선택되었으나, wait 처리된 (대기중인) 프로세스 큐
             addProcess(time);                                                                                           //프로세스 리스트 -> readyQueue 추가
             if(debugFlag) {
@@ -208,8 +209,7 @@ public class CPU {
             }
             cleanCores(time);                                                                                           //기존 코에어 remainWork이 0인, 작업이 끝난 프로세스 정리
             selectedProcess.addAll(scheduler.running(readyQueue, coreCount));                                           //스케줄러에 의해 선택된 프로세스들을 selectedProcess에 추가
-            int size = selectedProcess.size();
-            for(int i=0; i<size; i++){
+            for(int i=0; i<selectedProcess.size(); i++){
                 Process process = selectedProcess.poll();
                 if(!assignProcess(process)) {
                     schedulerQueue.add(process);
