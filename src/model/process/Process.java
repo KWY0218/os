@@ -55,12 +55,15 @@ public class Process implements Comparable<Process>{
     }
 
     public void worked(int able){
-        this.remainWork = this.remainWork - able;
+        remainWork -= able;
+        if(remainWork < 0)
+            remainWork = 0;
     }
 
     public void decreaseWork(){
         this.remainWork -= 1;
     }
+
     @Override
     public int compareTo(Process o) {
         return this.getArrivalTime() - o.getArrivalTime();

@@ -318,7 +318,6 @@ class Core{
     private final int ABLE_WORK; // E(1) or P(2)
     private final int ELECTRICITY;
     private List<Integer> history;
-    private boolean remainPower = false;
 
     public Core(int ableWork, int electricity) {
         this.ABLE_WORK = ableWork;
@@ -337,10 +336,8 @@ class Core{
     }
 
     public void setAssignedProcess(Process assignedProcess) {
-        if(remainPower)
-            assignedProcess.decreaseWork();
+
         this.assignedProcess = assignedProcess;
-        remainPower = false;
     }
 
     public Process emptyProcess(){
@@ -363,16 +360,9 @@ class Core{
             history.add(assignedProcess.getPid());
 
             assignedProcess.worked(ABLE_WORK);
-            
-            if(assignedProcess.getRemainWork() < 0){
-                remainPower = true;
-                assignedProcess.setRemainWork(0);
-            }
         }
 
         else {
-            if(remainPower)
-                remainPower = false;
             usingElectricity += 0.1;
             history.add(-1);
         }
