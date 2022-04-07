@@ -31,9 +31,10 @@ public class Main {
         processList2.add(new Process(4, 0,3));
         processList2.add(new Process(5, 0,4));
         processList2.add(new Process(6, 0,3));
+        processList2.add(new Process(7, 0,3));
 
         CPU rrCPU = new CPU(2, 0, processList2, new RR(),2);
-        rrCPU.run(true);
+        rrCPU.run(false);
         rrCPU.printEndCoreStatus();
 
         System.out.println("END");

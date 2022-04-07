@@ -150,7 +150,7 @@ public class CPU {
             return true;
         }
         else if(assignProcessScheduler(process)){
-            System.out.println("Scheduler");
+//            System.out.println("Scheduler");
             return true;
         }
         else{
@@ -178,6 +178,16 @@ public class CPU {
         }
     }
 
+    private void outProcessRun(){
+        while(!outProcessQueue.isEmpty()){
+            Process process = outProcessQueue.poll();
+//            System.out.println("OUT : " + process);
+            if(!assignProcess(process)){
+                readyQueue.add(process);
+            }
+//            System.out.println("outQueue : " +outProcessQueue.size());
+        }
+    }
     /**
      * 스케줄링을 실행한다.
      * 프로세스리스트에서 작업량이 남은 프로세스가 존재한다면
@@ -194,19 +204,23 @@ public class CPU {
         System.out.println("CPU.run start\n");
 
 
-        while(remainWorking()) {                                                                                        //작업 남음
+        while(remainWorking()) {
             int size = 0;
             this.outProcessQueue = new LinkedList<Process>();
-            Queue<Process> selectedProcess = new LinkedList<Process>();                                                 // 스케줄링에 의해 선택될 프로세스 큐
-            Queue<Process> schedulerQueue = new LinkedList<Process>();                                                  //스케줄링에 의해 선택되었으나, wait 처리된 (대기중인) 프로세스 큐
-            addProcess(time);                                                                                           //프로세스 리스트 -> readyQueue 추가
+            Queue<Process> selectedProcess = new LinkedList<Process>();
+            Queue<Process> schedulerQueue = new LinkedList<Process>();
+
+            addProcess(time);
+
             if(debugFlag) {
                 System.out.println(String.format("==========TIME : %d==========\n", time));
                 printProcessList();
             }
-            cleanCores(time);                                                                                           //기존 코에어 remainWork이 0인, 작업이 끝난 프로세스 정리
-            selectedProcess.addAll(scheduler.running(readyQueue, coreCount));                                           //스케줄러에 의해 선택된 프로세스들을 selectedProcess에 추가
+
+            cleanCores(time);
+            selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
             size = selectedProcess.size();
+
             for(int i=0; i<size; i++){
                 Process process = selectedProcess.poll();
                 if(!assignProcess(process)) {
@@ -214,24 +228,19 @@ public class CPU {
                 }
             }
 
+            outProcessRun();
 
-            while(!outProcessQueue.isEmpty()){
-                Process process = outProcessQueue.poll();
-                System.out.println("OUT : " + process);
-                if(!assignProcess(process)){
-                    readyQueue.add(process);
-                }
-                System.out.println("outQueue : " +outProcessQueue.size());
-            }
 //            printCoreStatuses();//running
 
             schedulerQueue.addAll(readyQueue);
             readyQueue = schedulerQueue;
+
             if(debugFlag){
                 printReadyQueue();
                 printCoreStatuses();
                 printProcessList();
             }
+
             for(Core core: embeddedCore){
                 core.run();
             }

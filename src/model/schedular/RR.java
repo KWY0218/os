@@ -18,12 +18,12 @@ public class RR implements Scheduler{
 
     @Override
     public Queue<Process> running(Queue<Process> processList, int counter) {
-        System.out.println("RR Run");
+//        System.out.println("RR Run");
         Queue<Process> resultList = new LinkedList<Process>();
         for(int i=0; (i < counter && !processList.isEmpty()); i++){
             resultList.add(processList.poll());
         }
-        System.out.println(resultList);
+//        System.out.println(resultList);
         return resultList;
     }
 

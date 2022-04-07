@@ -26,7 +26,7 @@ public class Process implements Comparable<Process>{
 
     public void setWhatTime(int whatTime) {
         this.whatTime = whatTime;
-        System.out.println("What time is changed" + this.toString() + this.whatTime);
+//        System.out.println("What time is changed" + this.toString() + this.whatTime);
     }
 
     public int getRunningTime(int time){
