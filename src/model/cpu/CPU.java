@@ -1,6 +1,7 @@
 package model.cpu;
 
 import model.process.Process;
+import model.schedular.RR;
 import model.schedular.Scheduler;
 
 import java.sql.Array;
@@ -14,32 +15,45 @@ public class CPU {
     /*
     각각의 코어는 처리능력으로 구분함
      */
+    private final Scheduler scheduler;
     private final int P_CORE_TYPE = 2;
     private final int E_CORE_TYPE = 1;
-    private int pCoreCount;
-    private int eCoreCount;
-    private int coreCount;
+    private final int pCoreCount;
+    private final int eCoreCount;
+    private final int coreCount;
+    private int timeQuantum;
+    private int time;
     private List<Core> embeddedCore;
     private List<Process> processList;
     private Queue<Process> readyQueue;
-    private Queue<Process> schedulerQueue;
-    private Scheduler scheduler;
-    private Queue<Process> selectedProcess;
+    private Queue<Process> outProcessQueue;
+
+
+    private void initCore(int eCoreCount, int pCoreCount){
+        for(int i=0; i<eCoreCount; i++)
+            this.embeddedCore.add(new Core(E_CORE_TYPE, 1));
+        for(int i=0; i<pCoreCount; i++)
+            this.embeddedCore.add(new Core(P_CORE_TYPE, 3));
+    }
 
     public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler) {
         this.pCoreCount = pCoreCount;
         this.eCoreCount = eCoreCount;
-        this.coreCount = coreCount = pCoreCount + eCoreCount;
+        coreCount = pCoreCount + eCoreCount;
         this.scheduler = scheduler;
         this.embeddedCore = new ArrayList<Core>();
         this.readyQueue = new LinkedList<Process>();
         this.processList = processList;
+        this.outProcessQueue = new LinkedList<Process>();
         processList.sort(Process::compareTo);
 
-        for(int i=0; i<eCoreCount; i++)
-            embeddedCore.add(new Core(E_CORE_TYPE, 1));
-        for(int i=eCoreCount; i<coreCount; i++)
-            embeddedCore.add(new Core(P_CORE_TYPE, 3));
+        initCore(eCoreCount, pCoreCount);
+    }
+
+    public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler, int timeQuantum) {
+        this(eCoreCount, pCoreCount, processList, scheduler);
+        this.timeQuantum = timeQuantum;
+        ((RR)scheduler).setTimeQuantum(timeQuantum);
     }
 
     /**
@@ -56,21 +70,25 @@ public class CPU {
         return E_CORE_TYPE;
     }
     private void changeProcess(Core core, Process changeProcess){
-        Process temp = core.emptyProcess();
-        if(core.emptyProcess() != null)
-            selectedProcess.add(temp);
-        core.setAssignedProcess(changeProcess);
+        Process process = core.getAssignedProcess();
+        if(process != null) {
+            readyQueue.add(process);
+            outProcessQueue.add(process);
+        }
+        core.setAssignedProcess(changeProcess, time);
     }
+
     private boolean assignProcessEmpty(Process process){
         for(int i = 0; i< coreCount; i++){
             if (!embeddedCore.get(i).isRunning()) {
-                embeddedCore.get(i).setAssignedProcess(process);
+                embeddedCore.get(i).setAssignedProcess(process, time);
                 return true;
             }
         }
         //wait
         return false;
     }
+
     private boolean assignProcessKind(Process process){
         int recommendedKind = recommendCore(process.getBurstTime());
         switch(recommendedKind) {
@@ -101,30 +119,13 @@ public class CPU {
     }
 
     private boolean assignProcessScheduler(Process process){
-        int recommendedKind = recommendCore(process.getBurstTime());
-        switch(recommendedKind) {
-            case P_CORE_TYPE:
-                for(int i = eCoreCount; i < coreCount; i++){
-                    if(!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process)) {
-                        changeProcess(embeddedCore.get(i), process);
-                        return true;
+        for(int i = 0; i < coreCount; i++){
+            if(!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process, time)) {
+                changeProcess(embeddedCore.get(i), process);
+                return true;
 
-                    }
-                }
-                break;
-            case E_CORE_TYPE:
-                for(int i = 0; i < eCoreCount; i++) {
-                    if (!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process)) {
-                        changeProcess(embeddedCore.get(i), process);
-                        return true;
-                    }
-                }
-                break;
-            default:
-                //throw assignProcessError
-                System.out.println("assignProcessError Process id : " + process.getPid());
+            }
         }
-
         //wait
         return false;
     }
@@ -189,41 +190,47 @@ public class CPU {
      * 6. 시간을 증가시킨다.
      */
     public void run(boolean debugFlag){
-        int time = 0;
+        System.out.println("CPU.run start\n");
         if(debugFlag){
-            System.out.println("CPU.run start\n");
             printCoreStatuses();
             printProcessList();
         }
 
 
         while(remainWorking()) {                                                                                        //작업 남음
-
-            selectedProcess = new LinkedList<Process>();                                                       // 스케줄링에 의해 선택될 프로세스 큐
-            schedulerQueue = new LinkedList<Process>();                                                                 //스케줄링에 의해 선택되었으나, wait 처리된 (대기중인) 프로세스 큐
+            int size = 0;
+            Queue<Process> selectedProcess = new LinkedList<Process>();                                                 // 스케줄링에 의해 선택될 프로세스 큐
+            Queue<Process> schedulerQueue = new LinkedList<Process>();                                                  //스케줄링에 의해 선택되었으나, wait 처리된 (대기중인) 프로세스 큐
             addProcess(time);                                                                                           //프로세스 리스트 -> readyQueue 추가
             if(debugFlag) {
                 System.out.println(String.format("=====TIME : %d=====\n", time));
                 printProcessList();
                 printReadyQueue();
+                printCoreStatuses();
             }
             cleanCores(time);                                                                                           //기존 코에어 remainWork이 0인, 작업이 끝난 프로세스 정리
             selectedProcess.addAll(scheduler.running(readyQueue, coreCount));                                           //스케줄러에 의해 선택된 프로세스들을 selectedProcess에 추가
-            for(int i=0; i<selectedProcess.size(); i++){
+            size = selectedProcess.size();
+            for(int i=0; i<size; i++){
                 Process process = selectedProcess.poll();
                 if(!assignProcess(process)) {
                     schedulerQueue.add(process);
                 }
             }
+            for(int i=0; i<outProcessQueue.size(); i++){
+                Process process = outProcessQueue.poll();
+                System.out.println("OUT : " + process);
+                assignProcess(process);
+            }
 //            printCoreStatuses();//running
 
             schedulerQueue.addAll(readyQueue);
             readyQueue = schedulerQueue;
+
             for(Core core: embeddedCore){
                 core.run();
             }
-//            if(time >= 10)
-//                break;
+
             time += 1;
         }
         if(debugFlag) {
@@ -291,7 +298,8 @@ public class CPU {
         for(Process process : processList){
             System.out.println(String.format("Process id : %d", process.getPid()));
             System.out.println(String.format("AT : %d, BT : %d", process.getArrivalTime(), process.getBurstTime()));
-            System.out.println(String.format("Remain Work : %d\n", process.getRemainWork()));
+            System.out.println(String.format("Remain Work : %d", process.getRemainWork()));
+            System.out.println(String.format("Running Time : %d\n", process.getRunningTime(time)));
         }
     }
 
@@ -312,69 +320,3 @@ public class CPU {
     }
 }
 
-class Core{
-    private Process assignedProcess;
-    private double usingElectricity;
-    private final int ABLE_WORK; // E(1) or P(2)
-    private final int ELECTRICITY;
-    private List<Integer> history;
-
-    public Core(int ableWork, int electricity) {
-        this.ABLE_WORK = ableWork;
-        assignedProcess = null;
-        usingElectricity = 0;
-        this.ELECTRICITY = electricity;
-        history = new ArrayList<Integer>();
-    }
-
-    public double getUsingElectricity() {
-        return usingElectricity;
-    }
-
-    public boolean isRunning(){
-        return assignedProcess != null;
-    }
-
-    public void setAssignedProcess(Process assignedProcess) {
-
-        this.assignedProcess = assignedProcess;
-    }
-
-    public Process emptyProcess(){
-        Process temp = assignedProcess;
-        assignedProcess = null;
-        return temp;
-    }
-
-    public Process getAssignedProcess() {
-        return assignedProcess;
-    }
-
-    public List<Integer> getHistory() {
-        return history;
-    }
-
-    public void run(){
-        if(assignedProcess != null) {
-            usingElectricity+=ELECTRICITY;
-            history.add(assignedProcess.getPid());
-
-            assignedProcess.worked(ABLE_WORK);
-        }
-
-        else {
-            usingElectricity += 0.1;
-            history.add(-1);
-        }
-
-    }
-
-    public int getCoreType() {
-        return ABLE_WORK;
-    }
-
-    @Override
-    public String toString() {
-        return history.toString();
-    }
-}

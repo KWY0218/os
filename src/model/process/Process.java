@@ -4,14 +4,37 @@ public class Process implements Comparable<Process>{
     private int arrivalTime;
     private int burstTime;
     private int pid;
+    private int time;
     private int remainWork;
     private int endTime;
+    private int whatTime;
 
     public Process(int pid, int arrivalTime, int burstTime) {
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.pid = pid;
+        time = 0;
         remainWork = burstTime;
+        whatTime = -1;
+    }
+
+
+
+    public int getWhatTime() {
+        return whatTime;
+    }
+
+    public void setWhatTime(int whatTime) {
+        this.whatTime = whatTime;
+        System.out.println("What Thie is changed" + this.toString() + this.whatTime);
+    }
+
+    public int getRunningTime(int time){
+        System.out.println("time : " + time);
+        System.out.println("What Time" + this.toString() + this.whatTime);
+        if(whatTime < 0)
+            return 0;
+        return time - whatTime;
     }
 
     public int getArrivalTime() {

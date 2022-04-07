@@ -20,5 +20,5 @@ public interface Scheduler {
      * @param inProcess 새로 할당된 프로세스
      * @return true : 기존 프로세스 처리, false : 프로세스 교체
      */
-    boolean compareProcess(Process runningProcess, Process inProcess);
+    boolean compareProcess(Process runningProcess, Process inProcess, int time);
 }

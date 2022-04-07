@@ -25,7 +25,7 @@ public class FCFS implements Scheduler{
      * @return true : 현상유지, false: 변경
      */
     @Override
-    public boolean compareProcess(Process runningProcess, Process inProcess) {
+    public boolean compareProcess(Process runningProcess, Process inProcess, int time) {
         return true;
     }
 }
