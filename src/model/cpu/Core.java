@@ -34,6 +34,7 @@ class Core {
     }
 
     public void emptyProcess() {
+        assignedProcess.setWhatTime(-1);
         assignedProcess = null;
     }
 

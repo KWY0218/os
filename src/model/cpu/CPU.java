@@ -44,7 +44,8 @@ public class CPU {
         this.embeddedCore = new ArrayList<Core>();
         this.readyQueue = new LinkedList<Process>();
         this.processList = processList;
-        this.outProcessQueue = new LinkedList<Process>();
+
+        this.time = 0;
         processList.sort(Process::compareTo);
 
         initCore(eCoreCount, pCoreCount);
@@ -71,10 +72,10 @@ public class CPU {
     }
     private void changeProcess(Core core, Process changeProcess){
         Process process = core.getAssignedProcess();
-        if(process != null) {
-            readyQueue.add(process);
-            outProcessQueue.add(process);
-        }
+
+        outProcessQueue.add(process);
+        core.emptyProcess();
+
         core.setAssignedProcess(changeProcess, time);
     }
 
@@ -95,7 +96,7 @@ public class CPU {
             case P_CORE_TYPE:
                 for(int i = eCoreCount; i < coreCount; i++){
                     if(!embeddedCore.get(i).isRunning()) {
-                        changeProcess(embeddedCore.get(i), process);
+                        embeddedCore.get(i).setAssignedProcess(process, time);
                         return true;
 
                     }
@@ -104,7 +105,7 @@ public class CPU {
             case E_CORE_TYPE:
                 for(int i = 0; i < eCoreCount; i++) {
                     if (!embeddedCore.get(i).isRunning()) {
-                        changeProcess(embeddedCore.get(i), process);
+                        embeddedCore.get(i).setAssignedProcess(process, time);
                         return true;
                     }
                 }
@@ -149,7 +150,7 @@ public class CPU {
             return true;
         }
         else if(assignProcessScheduler(process)){
-//            System.out.println("Scheduler");
+            System.out.println("Scheduler");
             return true;
         }
         else{
@@ -191,22 +192,17 @@ public class CPU {
      */
     public void run(boolean debugFlag){
         System.out.println("CPU.run start\n");
-        if(debugFlag){
-            printCoreStatuses();
-            printProcessList();
-        }
 
 
         while(remainWorking()) {                                                                                        //작업 남음
             int size = 0;
+            this.outProcessQueue = new LinkedList<Process>();
             Queue<Process> selectedProcess = new LinkedList<Process>();                                                 // 스케줄링에 의해 선택될 프로세스 큐
             Queue<Process> schedulerQueue = new LinkedList<Process>();                                                  //스케줄링에 의해 선택되었으나, wait 처리된 (대기중인) 프로세스 큐
             addProcess(time);                                                                                           //프로세스 리스트 -> readyQueue 추가
             if(debugFlag) {
-                System.out.println(String.format("=====TIME : %d=====\n", time));
+                System.out.println(String.format("==========TIME : %d==========\n", time));
                 printProcessList();
-                printReadyQueue();
-                printCoreStatuses();
             }
             cleanCores(time);                                                                                           //기존 코에어 remainWork이 0인, 작업이 끝난 프로세스 정리
             selectedProcess.addAll(scheduler.running(readyQueue, coreCount));                                           //스케줄러에 의해 선택된 프로세스들을 selectedProcess에 추가
@@ -217,21 +213,30 @@ public class CPU {
                     schedulerQueue.add(process);
                 }
             }
-            for(int i=0; i<outProcessQueue.size(); i++){
+
+
+            while(!outProcessQueue.isEmpty()){
                 Process process = outProcessQueue.poll();
                 System.out.println("OUT : " + process);
-                assignProcess(process);
+                if(!assignProcess(process)){
+                    readyQueue.add(process);
+                }
+                System.out.println("outQueue : " +outProcessQueue.size());
             }
 //            printCoreStatuses();//running
 
             schedulerQueue.addAll(readyQueue);
             readyQueue = schedulerQueue;
-
+            if(debugFlag){
+                printReadyQueue();
+                printCoreStatuses();
+                printProcessList();
+            }
             for(Core core: embeddedCore){
                 core.run();
             }
-
             time += 1;
+
         }
         if(debugFlag) {
             System.out.println("CPU.run end\n");
