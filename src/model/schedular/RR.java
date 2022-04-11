@@ -17,9 +17,10 @@ public class RR implements Scheduler{
     }
 
     @Override
-    public Queue<Process> running(Queue<Process> processList, int counter) {
+    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount) {
 //        System.out.println("RR Run");
         Queue<Process> resultList = new LinkedList<Process>();
+        int counter = pCoreCount + eCoreCount;
         for(int i=0; (i < counter && !processList.isEmpty()); i++){
             resultList.add(processList.poll());
         }

@@ -204,7 +204,7 @@ public class CPU {
         System.out.println("CPU.run start\n");
 
 
-        while(remainWorking()) {
+        while(remainWorking() && embeddedCore.size() != 0) {
             int size = 0;
             this.outProcessQueue = new LinkedList<Process>();
             Queue<Process> selectedProcess = new LinkedList<Process>();
@@ -218,7 +218,7 @@ public class CPU {
             }
 
             cleanCores(time);
-            selectedProcess.addAll(scheduler.running(readyQueue, coreCount));
+            selectedProcess.addAll(scheduler.running(readyQueue, pCoreCount, eCoreCount));
             size = selectedProcess.size();
 
             for(int i=0; i<size; i++){
@@ -289,22 +289,26 @@ public class CPU {
      *
      *
      */
-    public void printCoreStatuses(){
-        for(int i=0; i<coreCount; i++){
-            System.out.println(String.format("Core #%d", i));
-            System.out.println(String.format("Core use : %f", embeddedCore.get(i).getUsingElectricity()));
-            System.out.print(String.format("Core Type : "));
-            switch(embeddedCore.get(i).getCoreType()){
-                case P_CORE_TYPE:
-                    System.out.println("P");
-                    break;
-                case E_CORE_TYPE:
-                    System.out.println("E");
-                    break;
-                default:
-                    System.out.println("ERROR");
+    public void printCoreStatuses() {
+        if (embeddedCore.size() == 0)
+            System.out.println("Core is not defined");
+        else {
+            for (int i = 0; i < coreCount; i++) {
+                System.out.println(String.format("Core #%d", i));
+                System.out.println(String.format("Core use : %f", embeddedCore.get(i).getUsingElectricity()));
+                System.out.print(String.format("Core Type : "));
+                switch (embeddedCore.get(i).getCoreType()) {
+                    case P_CORE_TYPE:
+                        System.out.println("P");
+                        break;
+                    case E_CORE_TYPE:
+                        System.out.println("E");
+                        break;
+                    default:
+                        System.out.println("ERROR");
+                }
+                System.out.println("assigned process : " + embeddedCore.get(i).getAssignedProcess() + "\n");
             }
-            System.out.println("assigned process : " + embeddedCore.get(i).getAssignedProcess() + "\n");
         }
     }
 
@@ -317,19 +321,27 @@ public class CPU {
         }
     }
 
-    public void printCoreHistory(){
-        for(Core core : embeddedCore)
-            System.out.println(core);
+    public void printCoreHistory() {
+        if (embeddedCore.size() == 0)
+            System.out.println("Core is not defined");
+        else {
+            for (Core core : embeddedCore)
+                System.out.println(core);
+        }
     }
 
     public void printReadyQueue(){
         System.out.println("Ready Queue\n" + readyQueue + "\n");
     }
 
-    public void printEndCoreStatus(){
-        for(int i = 0; i < coreCount; i++) {
-            Core core = embeddedCore.get(i);
-            System.out.println(String.format("#%d Core\nUse Electricity : %.2f W \n",i , core.getUsingElectricity()) + core + "\n");
+    public void printEndCoreStatus() {
+        if (embeddedCore.size() == 0)
+            System.out.println("Core is not defined");
+        else {
+            for (int i = 0; i < coreCount; i++) {
+                Core core = embeddedCore.get(i);
+                System.out.println(String.format("#%d Core\nUse Electricity : %.2f W \n", i, core.getUsingElectricity()) + core + "\n");
+            }
         }
     }
 }
