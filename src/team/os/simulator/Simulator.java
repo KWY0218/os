@@ -10,7 +10,7 @@ import team.os.algorithm.*;
 
 public class Simulator {
 
-	private static final int MAX_CORE_SIZE = 4;
+	public static final int MAX_CORE_SIZE = 4;
 	public static int TIME_QUANTUM = 4;
 	
 	/**

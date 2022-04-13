@@ -10,8 +10,8 @@ import javax.swing.border.EmptyBorder;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 
-import team.os.algorithm.FCFS;
 import team.os.simulator.History;
+import team.os.simulator.Simulator;
 
 import javax.swing.border.LineBorder;
 import java.awt.Color;
@@ -328,14 +328,14 @@ public class UI extends JFrame {
 		
 		btnNewButton_3 = new JButton("-");
 		btnNewButton_3.addActionListener(e -> {
-			addCoreSize(textField_4, -1);
+			addCoreSize(textField_4, new JTextField[] {textField_4, textField_5}, -1);
 		});
 		btnNewButton_3.setBounds(198, 6, 26, 26);
 		panel_1.add(btnNewButton_3);
 		
 		btnNewButton_4 = new JButton("+");
 		btnNewButton_4.addActionListener(e -> {
-			addCoreSize(textField_4, 1);
+			addCoreSize(textField_4, new JTextField[] {textField_4, textField_5}, 1);
 		});
 		btnNewButton_4.setBounds(170, 6, 26, 26);
 		panel_1.add(btnNewButton_4);
@@ -355,14 +355,14 @@ public class UI extends JFrame {
 		
 		btnNewButton_5 = new JButton("+");
 		btnNewButton_5.addActionListener(e -> {
-			addCoreSize(textField_5, 1);
+			addCoreSize(textField_5, new JTextField[] {textField_4, textField_5}, 1);
 		});
 		btnNewButton_5.setBounds(170, 38, 26, 26);
 		panel_1.add(btnNewButton_5);
 		
 		btnNewButton_6 = new JButton("-");
 		btnNewButton_6.addActionListener(e -> {
-			addCoreSize(textField_5, -1);
+			addCoreSize(textField_5, new JTextField[] {textField_4, textField_5}, -1);
 		});
 		btnNewButton_6.setBounds(198, 38, 26, 26);
 		panel_1.add(btnNewButton_6);
@@ -409,19 +409,27 @@ public class UI extends JFrame {
 		table_3 = new JTable();
 		scrollPane_3.setViewportView(table_3);
 	}
-	
+
 	/**
-	 * @param field
+	 * @param targetField
+	 * @param fields
 	 * @param value
 	 */
-	
-	private void addCoreSize(JTextField field, int value) {
+
+	private void addCoreSize(JTextField targetField, JTextField[] fields, int value) {
 		
-		int now = Integer.parseInt(field.getText());
+		int now = Integer.parseInt(targetField.getText());
 		
-		if(now + value >= 0)
+		int using = 0;
 		
-			field.setText(String.valueOf(now + value));
+		for(JTextField field : fields)
+			
+			using += Integer.parseInt(field.getText());
+		
+		// 타겟 필드의 코어 사용량이 0개 미만이 아니면서, 전체 코어 사용량이 MAX_CORE_SIZE를 초과하지 않을 때
+		if(now + value >= 0 && using + value <= Simulator.MAX_CORE_SIZE)
+		
+			targetField.setText(String.valueOf(now + value));
 		
 	}
 	
@@ -435,7 +443,7 @@ public class UI extends JFrame {
 
 	private void runScheduling() {
 		
-		// ��Ʈ ��Ʈ�� �׸���.
+		// 
 		drawGanttChart(new History());
 		
 	}
