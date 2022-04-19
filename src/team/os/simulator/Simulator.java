@@ -12,7 +12,7 @@ public class Simulator {
 
 	public static final int MAX_CORE_SIZE = 4;
 	public static int TIME_QUANTUM = 4;
-	
+
 	/**
 	 * @param coreList
 	 * @return Power consumption of coreList
@@ -68,12 +68,15 @@ public class Simulator {
 
 			Core core = coreList.get(coreIndex);
 
+			// 코어가 사용중이 아니라면
 			if(!core.isWorking()) {
 
+				// 먼저 발견된 코어의 위치를 저장한다.
 				if(locationOfFirst == -1)
 
 					locationOfFirst = coreIndex;
 
+				// 
 				if(core instanceof PCore && locationOfPCore == -1)
 
 					locationOfPCore = coreIndex;
@@ -122,7 +125,7 @@ public class Simulator {
 	/**
 	 * @param args
 	 */
-	
+
 	public static void main(String[] args) {
 
 		// 프로세스 리스트를 생성한다.
@@ -149,16 +152,16 @@ public class Simulator {
 			}
 
 		// 예제 프로세스 및 코어
-//		processList.clear();
-//		processList.add(new Process("P1", 0, 3));
-//		processList.add(new Process("P2", 1, 7));
-//		processList.add(new Process("P3", 3, 2));
-//		processList.add(new Process("P4", 5, 5));
-//		processList.add(new Process("P5", 6, 3));
-//		
-//		coreList.clear();
-//		coreList.add(new PCore());
-		
+		//		processList.clear();
+		//		processList.add(new Process("P1", 0, 3));
+		//		processList.add(new Process("P2", 1, 7));
+		//		processList.add(new Process("P3", 3, 2));
+		//		processList.add(new Process("P4", 5, 5));
+		//		processList.add(new Process("P5", 6, 3));
+		//		
+		//		coreList.clear();
+		//		coreList.add(new PCore());
+
 		// 프로세스 및 코어 리스트를 출력한다.
 		for(Process process : processList)
 
@@ -170,27 +173,37 @@ public class Simulator {
 
 		System.out.println("-------- FCFS --------");
 		History history = new FCFS().schedule(processList, coreList, PriorityType.POWER);
-		
+
 		// 히스토리 테스트
 		System.out.println("-------- History --------");
-		int bt = 0;
-		
-		for(List<Process> pl : history.getHistory()) {
-			
-			System.out.printf("%2d ", bt++);
-			
-			for(Process p : pl) {
-				
-				System.out.printf("%s -> %2d ", p.getPID(), p.getWorkingCoreIndex());
-				
-			}
+
+		System.out.print("       ");
+
+		for(int historyIndex = 0; historyIndex < history.getHistory().size(); historyIndex++)
+
+			System.out.printf("%4d ", historyIndex + 1);
+
+		System.out.println();
+
+		for(int coreIndex = 0; coreIndex < coreList.size(); coreIndex++) {
+
+			System.out.printf("Core%2d", coreIndex + 1);
+
+			for(List<Process> pl : history.getHistory())
+
+				for(Process p : pl)
+
+					if(p.getWorkingCoreIndex() == coreIndex)
+
+						System.out.printf("%5s", p.getPID());
 			
 			System.out.println();
-			
+
 		}
-		
+
+
 		System.out.println("History.getTotalBurstTime(): " + history.getTotalBurstTime());
-		
+
 	}
 
 }

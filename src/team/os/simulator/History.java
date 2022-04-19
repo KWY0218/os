@@ -1,20 +1,24 @@
 package team.os.simulator;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 
 public class History {
 
-	private List<List<Process>> history;
+	private List<List<Process>> processHistory;
+	private List<Queue<Process>> readyQueue;
 	private int totalBurstTime = 0;
 	private double totalPowerConsumption = 0.0;
 
 	public History() {
 
-		history = new ArrayList<List<Process>>();
+		processHistory = new ArrayList<List<Process>>();
+		readyQueue = new ArrayList<Queue<Process>>();
 
 	}
 
-	public void addPage(List<Process> mProcessList) {
+	public void addPage(List<Process> mProcessList, Queue<Process> mReadyQueue) {
 
 		List<Process> processList = new ArrayList<Process>();
 
@@ -26,13 +30,16 @@ public class History {
 
 		}
 
-		history.add(processList);
+		processHistory.add(processList);
 
+		// queue 복사
+		// readyQueue.add(mReadyQueue);
+		
 	}
 
 	public List<List<Process>> getHistory() {
 
-		return history;
+		return processHistory;
 
 	}
 

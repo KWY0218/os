@@ -94,7 +94,11 @@ public class FCFS implements SchedulingAlgorithm {
 
 				// 프로세스의 남은 작업 시간을 코어의 파워만큼 감소한다.
 				process.decreaseRemainBurstTime(core.getPower());
-
+				
+				
+				
+				
+				
 				System.out.println(process.getRemainBurstTime());
 
 				// 프로세스의 남은 작업시간이 0 이하라면
@@ -133,7 +137,7 @@ public class FCFS implements SchedulingAlgorithm {
 			System.out.println();
 
 			// 히스토리를 추가한다.
-			history.addPage(processList);
+			history.addPage(processList, processQueue);
 
 		}
 

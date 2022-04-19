@@ -5,7 +5,6 @@ import java.awt.Toolkit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -14,7 +13,6 @@ import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.icons.FlatClearIcon;
 
 import team.os.simulator.History;
 import team.os.simulator.Process;
