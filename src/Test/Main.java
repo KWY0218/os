@@ -33,7 +33,7 @@ public class Main {
         processList2.add(new Process(6, 0,3));
         processList2.add(new Process(7, 0,3));
 
-        CPU rrCPU = new CPU(0, 2, processList2, new RR(),2);
+        CPU rrCPU = new CPU(0, 0, processList2, new RR(),2);
         rrCPU.run(false);
         rrCPU.printEndCoreStatus();
 

@@ -218,9 +218,10 @@ public class CPU {
             }
 
             cleanCores(time);
-            selectedProcess = (scheduler.running(readyQueue, pCoreCount, eCoreCount));
+            selectedProcess.addAll(scheduler.running(readyQueue, pCoreCount, eCoreCount));
+            size = selectedProcess.size();
 
-            while(!selectedProcess.isEmpty()){
+            for(int i=0; i<size; i++){
                 Process process = selectedProcess.poll();
                 if(!assignProcess(process)) {
                     schedulerQueue.add(process);
