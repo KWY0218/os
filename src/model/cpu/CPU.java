@@ -36,7 +36,7 @@ public class CPU {
             this.embeddedCore.add(new Core(P_CORE_TYPE, 3));
     }
 
-    public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler) {
+    public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler, int timeQuantum) {
         this.pCoreCount = pCoreCount;
         this.eCoreCount = eCoreCount;
         coreCount = pCoreCount + eCoreCount;
@@ -49,12 +49,10 @@ public class CPU {
         processList.sort(Process::compareTo);
 
         initCore(eCoreCount, pCoreCount);
-    }
-
-    public CPU(int eCoreCount, int pCoreCount, List<Process> processList, Scheduler scheduler, int timeQuantum) {
-        this(eCoreCount, pCoreCount, processList, scheduler);
-        this.timeQuantum = timeQuantum;
-        ((RR)scheduler).setTimeQuantum(timeQuantum);
+        if(timeQuantum != -1){
+            this.timeQuantum = timeQuantum;
+            ((RR)scheduler).setTimeQuantum(timeQuantum);
+        }
     }
 
     /**
@@ -217,8 +215,8 @@ public class CPU {
                 printProcessList();
             }
 
-            cleanCores(time);
-            selectedProcess.addAll(scheduler.running(readyQueue, pCoreCount, eCoreCount));
+
+            selectedProcess.addAll(scheduler.running(readyQueue, pCoreCount, eCoreCount,time));
             size = selectedProcess.size();
 
             for(int i=0; i<size; i++){
@@ -246,6 +244,7 @@ public class CPU {
             }
             time += 1;
 
+            cleanCores(time);
         }
         if(debugFlag) {
             System.out.println("CPU.run end\n");

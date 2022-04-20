@@ -1,62 +1,66 @@
 package model.process;
 
+import data.ProcessData;
+
 public class Process implements Comparable<Process>{
-    private int arrivalTime;
-    private int burstTime;
-    private int pid;
+    private final int arrivalTime;
+    private final int burstTime;
+    private final String pid;
     private int time;
     private int remainWork;
     private int endTime;
-    private int whatTime;
+    private int startTime;
+    private int workStartTime;
 
-    public Process(int pid, int arrivalTime, int burstTime) {
+    public Process(String pid, int arrivalTime, int burstTime) {
         this.arrivalTime = arrivalTime;
         this.burstTime = burstTime;
         this.pid = pid;
         time = 0;
         remainWork = burstTime;
-        whatTime = -1;
+        endTime = -1;
+        startTime = -1;
+        workStartTime = -1;
     }
 
 
 
-    public int getWhatTime() {
-        return whatTime;
+    public int getworkStartTime() {
+        return workStartTime;
     }
 
-    public void setWhatTime(int whatTime) {
-        this.whatTime = whatTime;
-//        System.out.println("What time is changed" + this.toString() + this.whatTime);
+
+    public void setworkStartTime(int workStartTime) {
+        this.workStartTime = workStartTime;
+//        System.out.println("What time is changed" + this.toString() + this.workStartTime);
+    }
+
+    public int getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(int startTime) {
+        if(this.startTime == -1)
+            this.startTime = startTime;
     }
 
     public int getRunningTime(int time){
-        if(whatTime < 0)
+        if(workStartTime < 0)
             return 0;
-        return time - whatTime;
+        return time - workStartTime;
     }
 
     public int getArrivalTime() {
         return arrivalTime;
     }
 
-    public void setArrivalTime(int arrivalTime) {
-        this.arrivalTime = arrivalTime;
-    }
-
     public int getBurstTime() {
         return burstTime;
     }
 
-    public void setBurstTime(int burstTime) {
-        this.burstTime = burstTime;
-    }
 
-    public int getPid() {
+    public String getPid() {
         return pid;
-    }
-
-    public void setPid(int pid) {
-        this.pid = pid;
     }
 
     public int getRemainWork() {
@@ -85,6 +89,17 @@ public class Process implements Comparable<Process>{
         this.remainWork -= 1;
     }
 
+    public ProcessData getProcessData(){
+        ProcessData processData = new ProcessData();
+        int waitTime = startTime - arrivalTime;
+        int turnAroundTime = endTime - arrivalTime;
+        double normalizedTT = (double)  turnAroundTime / burstTime;
+
+        processData.setProcessData(pid,arrivalTime,burstTime,waitTime,turnAroundTime,normalizedTT);
+
+        return processData;
+    }
+    
     @Override
     public int compareTo(Process o) {
         return this.getArrivalTime() - o.getArrivalTime();

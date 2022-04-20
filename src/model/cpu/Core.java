@@ -1,5 +1,6 @@
 package model.cpu;
 
+import data.ProcessData;
 import model.process.Process;
 
 import java.util.ArrayList;
@@ -10,14 +11,14 @@ class Core {
     private double usingElectricity;
     private final int ABLE_WORK; // E(1) or P(2)
     private final int ELECTRICITY;
-    private List<Integer> history;
+    private List<ProcessData> history;
 
     public Core(int ableWork, int electricity) {
         this.ABLE_WORK = ableWork;
         assignedProcess = null;
         usingElectricity = 0;
         this.ELECTRICITY = electricity;
-        history = new ArrayList<Integer>();
+        history = new ArrayList<ProcessData>();
     }
 
     public double getUsingElectricity() {
@@ -30,11 +31,12 @@ class Core {
 
     public void setAssignedProcess(Process process, int time) {
         this.assignedProcess = process;
-        this.assignedProcess.setWhatTime(time); // 초기 설정 확인시 조건문 필요
+        this.assignedProcess.setworkStartTime(time); // 초기 설정 확인시 조건문 필요
+        this.assignedProcess.setStartTime(time);
     }
 
     public void emptyProcess() {
-        assignedProcess.setWhatTime(-1);
+        assignedProcess.setworkStartTime(-1);
         assignedProcess = null;
     }
 
@@ -42,19 +44,19 @@ class Core {
         return assignedProcess;
     }
 
-    public List<Integer> getHistory() {
+    public List<ProcessData> getHistory() {
         return history;
     }
 
     public void run() {
         if (assignedProcess != null) {
             usingElectricity += ELECTRICITY;
-            history.add(assignedProcess.getPid());
+            history.add(assignedProcess.getProcessData());
 
             assignedProcess.worked(ABLE_WORK);
         } else {
             usingElectricity += 0.1;
-            history.add(-1);
+            history.add(null);
         }
 
     }

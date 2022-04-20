@@ -9,7 +9,7 @@ import java.util.Queue;
 public class FCFS implements Scheduler{
 
     @Override
-    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount) {
+    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time) {
 //        System.out.println("FCFS Run");
         int counter = pCoreCount + eCoreCount;
         Queue<Process> resultList = new LinkedList<Process>();
