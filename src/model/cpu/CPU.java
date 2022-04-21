@@ -116,7 +116,7 @@ public class CPU {
         //wait
         return false;
     }
-
+//각 코어 비교 후 변경 -> outProcessRun 필요 없음
     private boolean assignProcessScheduler(Process process){
         for(int i = 0; i < coreCount; i++){
             if(!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process, time)) {
@@ -175,7 +175,7 @@ public class CPU {
                 readyQueue.add(p);
         }
     }
-
+//
     private void outProcessRun(){
         while(!outProcessQueue.isEmpty()){
             Process process = outProcessQueue.poll();
@@ -214,8 +214,6 @@ public class CPU {
                 System.out.println(String.format("==========TIME : %d==========\n", time));
                 printProcessList();
             }
-
-
             selectedProcess.addAll(scheduler.running(readyQueue, pCoreCount, eCoreCount,time));
             size = selectedProcess.size();
 
@@ -225,7 +223,7 @@ public class CPU {
                     schedulerQueue.add(process);
                 }
             }
-
+            
             outProcessRun();
 
 //            printCoreStatuses();//running
