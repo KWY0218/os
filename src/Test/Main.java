@@ -42,7 +42,7 @@ public class Main {
         processList2.add(new Process("7", 0,3));
 
         CPU rrCPU = new CPU(2, 2, processList2, new RR(),2);
-        rrCPU.run(false);
+        rrCPU.run(true);
         rrCPU.printEndCoreStatus();
 
         System.out.println("END");
