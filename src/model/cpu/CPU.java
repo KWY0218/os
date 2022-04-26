@@ -30,6 +30,7 @@ public class CPU {
     private HistoryData historyData;
 
 
+
     private void initCore(int eCoreCount, int pCoreCount){
         for(int i=0; i<eCoreCount; i++)
             this.embeddedCore.add(new Core(E_CORE_TYPE, 1));
@@ -117,7 +118,6 @@ public class CPU {
     private boolean assignProcessScheduler(Process process){
         int properCoreIndex = -1;
         Process properProcess = null;
-
         if(coreCount <= 1){
             return (!scheduler.compareProcess(embeddedCore.get(0).getAssignedProcess(), process, time));
         }
