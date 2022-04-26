@@ -14,7 +14,7 @@ public interface Scheduler {
      * @param time 스케줄러 호출 시간
      * @return 현재 실행해야할 코어 큐
      */
-    Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time);
+    Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time, int timeQuantum);
 
     /**
      * 기존에 실행중인 프로세스와 새로 할당할 프로세스를 비교하여, 기존 프로세스를 계속 처리할 경우 true를 할당된 프로세스를 변경시 false를 반환한다.

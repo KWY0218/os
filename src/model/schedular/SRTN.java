@@ -14,7 +14,7 @@ public class SRTN implements Scheduler{
      * @return 현재 실행해야할 코어 큐
      */
     @Override
-    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time) {
+    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time, int timeQuantum) {
         return null;
     }
 

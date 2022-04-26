@@ -5,19 +5,16 @@ import model.process.Process;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class RR implements Scheduler{
-    int timeQuantum;
-
-    public int getTimeQuantum() {
-        return timeQuantum;
-    }
-
-    public void setTimeQuantum(int timeQuantum) {
-        this.timeQuantum = timeQuantum;
-    }
+public class RR implements Scheduler {
+	
+    private int timeQuantum;
 
     @Override
-    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time) {
+    public Queue<Process> running(Queue<Process> processList, int pCoreCount, int eCoreCount, int time, int mTimeQuantum) {
+    	
+    	// Set TimeQuantum
+    	timeQuantum = mTimeQuantum;
+    	
 //        System.out.println("RR Run");
         Queue<Process> resultList = new LinkedList<Process>();
         int counter = pCoreCount + eCoreCount;

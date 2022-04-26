@@ -137,6 +137,7 @@ public class Process implements Comparable<Process>{
                 ", waitingTime=" + waitingTime +
                 ", turnaroundTime=" + turnaroundTime +
                 ", normalizedTT=" + normalizedTT +
+                ", RemainWork=" + getRemainWork() +
                 '}';
     }
 }
