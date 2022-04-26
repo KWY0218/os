@@ -1,6 +1,5 @@
 package model.cpu;
 
-import data.ProcessData;
 import model.process.Process;
 
 import java.util.ArrayList;
@@ -11,14 +10,16 @@ class Core {
     private double usingElectricity;
     private final int ABLE_WORK; // E(1) or P(2)
     private final int ELECTRICITY;
-    private List<ProcessData> history;
+    private List<Process> history;
+    private List<Double> usingElectricityHistory;
 
     public Core(int ableWork, int electricity) {
         this.ABLE_WORK = ableWork;
         assignedProcess = null;
         usingElectricity = 0;
         this.ELECTRICITY = electricity;
-        history = new ArrayList<ProcessData>();
+        history = new ArrayList<Process>();
+        usingElectricityHistory = new ArrayList<Double>();
     }
 
     public double getUsingElectricity() {
@@ -31,12 +32,24 @@ class Core {
 
     public void setAssignedProcess(Process process, int time) {
         this.assignedProcess = process;
-        this.assignedProcess.setworkStartTime(time); // 초기 설정 확인시 조건문 필요
+        this.assignedProcess.setWorkStartTime(time); // 초기 설정 확인시 조건문 필요
         this.assignedProcess.setStartTime(time);
     }
 
+    public void setHistory(List<Process> history) {
+        this.history = history;
+    }
+
+    public List<Double> getUsingElectricityHistory() {
+        return usingElectricityHistory;
+    }
+
+    public void setUsingElectricityHistory(List<Double> usingElectricityHistory) {
+        this.usingElectricityHistory = usingElectricityHistory;
+    }
+
     public void emptyProcess() {
-        assignedProcess.setworkStartTime(-1);
+        assignedProcess.setWorkStartTime(-1);
         assignedProcess = null;
     }
 
@@ -44,21 +57,21 @@ class Core {
         return assignedProcess;
     }
 
-    public List<ProcessData> getHistory() {
+    public List<Process> getHistory() {
         return history;
     }
 
     public void run() {
         if (assignedProcess != null) {
             usingElectricity += ELECTRICITY;
-            history.add(assignedProcess.getProcessData());
+            history.add(assignedProcess);
 
             assignedProcess.worked(ABLE_WORK);
         } else {
             usingElectricity += 0.1;
             history.add(null);
         }
-
+        usingElectricityHistory.add(usingElectricity);
     }
 
     public int getCoreType() {

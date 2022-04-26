@@ -1,7 +1,5 @@
 package model.process;
 
-import data.ProcessData;
-
 public class Process implements Comparable<Process>{
     private final int arrivalTime;
     private final int burstTime;
@@ -11,6 +9,9 @@ public class Process implements Comparable<Process>{
     private int endTime;
     private int startTime;
     private int workStartTime;
+    private int waitingTime = 0;
+    private int turnaroundTime = 0;
+    private double normalizedTT = 0.0;
 
     public Process(String pid, int arrivalTime, int burstTime) {
         this.arrivalTime = arrivalTime;
@@ -24,13 +25,12 @@ public class Process implements Comparable<Process>{
     }
 
 
-
-    public int getworkStartTime() {
+    public int getWorkStartTime() {
         return workStartTime;
     }
 
 
-    public void setworkStartTime(int workStartTime) {
+    public void setWorkStartTime(int workStartTime) {
         this.workStartTime = workStartTime;
 //        System.out.println("What time is changed" + this.toString() + this.workStartTime);
     }
@@ -40,8 +40,10 @@ public class Process implements Comparable<Process>{
     }
 
     public void setStartTime(int startTime) {
-        if(this.startTime == -1)
+        if(this.startTime == -1) {
             this.startTime = startTime;
+            setWaitingTime();
+        }
     }
 
     public int getRunningTime(int time){
@@ -73,6 +75,8 @@ public class Process implements Comparable<Process>{
 
     public void setEndTime(int endTime) {
         this.endTime = endTime;
+        setTurnaroundTime();
+        setNormalizedTT();
     }
 
     public void setRemainWork(int remainWork) {
@@ -89,17 +93,34 @@ public class Process implements Comparable<Process>{
         this.remainWork -= 1;
     }
 
-    public ProcessData getProcessData(){
-        ProcessData processData = new ProcessData();
-        int waitTime = startTime - arrivalTime;
-        int turnAroundTime = endTime - arrivalTime;
-        double normalizedTT = (double)  turnAroundTime / burstTime;
 
-        processData.setProcessData(pid,arrivalTime,burstTime,waitTime,turnAroundTime,normalizedTT);
-
-        return processData;
+    public int getWaitingTime() {
+        setWaitingTime();
+        return waitingTime;
     }
-    
+
+    public void setWaitingTime() {
+        this.waitingTime = startTime - arrivalTime;
+    }
+
+    public int getTurnaroundTime() {
+        setTurnaroundTime();
+        return turnaroundTime;
+    }
+
+    public void setTurnaroundTime() {
+        this.turnaroundTime = endTime - arrivalTime;
+    }
+
+    public double getNormalizedTT() {
+        setNormalizedTT();
+        return normalizedTT;
+    }
+
+    public void setNormalizedTT() {
+        this.normalizedTT = (double) turnaroundTime / burstTime;
+    }
+
     @Override
     public int compareTo(Process o) {
         return this.getArrivalTime() - o.getArrivalTime();
@@ -108,7 +129,14 @@ public class Process implements Comparable<Process>{
     @Override
     public String toString() {
         return "Process{" +
-                "pid=" + pid +
+                "arrivalTime=" + arrivalTime +
+                ", burstTime=" + burstTime +
+                ", pid='" + pid + '\'' +
+                ", endTime=" + endTime +
+                ", startTime=" + startTime +
+                ", waitingTime=" + waitingTime +
+                ", turnaroundTime=" + turnaroundTime +
+                ", normalizedTT=" + normalizedTT +
                 '}';
     }
 }

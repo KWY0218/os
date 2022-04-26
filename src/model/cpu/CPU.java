@@ -1,5 +1,6 @@
 package model.cpu;
 
+import data.HistoryData;
 import model.process.Process;
 import model.schedular.RR;
 import model.schedular.Scheduler;
@@ -26,7 +27,7 @@ public class CPU {
     private List<Core> embeddedCore;
     private List<Process> processList;
     private Queue<Process> readyQueue;
-    private Queue<Process> outProcessQueue;
+    private HistoryData historyData;
 
 
     private void initCore(int eCoreCount, int pCoreCount){
@@ -44,7 +45,7 @@ public class CPU {
         this.embeddedCore = new ArrayList<Core>();
         this.readyQueue = new LinkedList<Process>();
         this.processList = processList;
-
+        historyData = new HistoryData();
         this.time = 0;
         processList.sort(Process::compareTo);
 
@@ -68,13 +69,9 @@ public class CPU {
 
         return E_CORE_TYPE;
     }
-    private void changeProcess(Core core, Process changeProcess){
-        Process process = core.getAssignedProcess();
-
-        outProcessQueue.add(process);
+    private void changeProcess(Core core, Process process){
         core.emptyProcess();
-
-        core.setAssignedProcess(changeProcess, time);
+        core.setAssignedProcess(process, time);
     }
 
     private boolean assignProcessEmpty(Process process){
@@ -116,14 +113,27 @@ public class CPU {
         //wait
         return false;
     }
-//각 코어 비교 후 변경 -> outProcessRun 필요 없음
-    private boolean assignProcessScheduler(Process process){
-        for(int i = 0; i < coreCount; i++){
-            if(!scheduler.compareProcess(embeddedCore.get(i).getAssignedProcess(), process, time)) {
-                changeProcess(embeddedCore.get(i), process);
-                return true;
 
+    private boolean assignProcessScheduler(Process process){
+        int properCoreIndex = -1;
+        Process properProcess = null;
+
+        if(coreCount <= 1){
+            return (!scheduler.compareProcess(embeddedCore.get(0).getAssignedProcess(), process, time));
+        }
+
+        for(int i = 0; i < coreCount; i++){
+            Process tempProcess = embeddedCore.get(i).getAssignedProcess();
+            if(!scheduler.compareProcess(tempProcess, properProcess, time)){
+                properCoreIndex = i;
+                properProcess = tempProcess;
             }
+        }
+
+        if(properCoreIndex > -1){
+            changeProcess(embeddedCore.get(properCoreIndex), process);
+            readyQueue.add(properProcess);
+            return true;
         }
         //wait
         return false;
@@ -175,17 +185,17 @@ public class CPU {
                 readyQueue.add(p);
         }
     }
-//
-    private void outProcessRun(){
-        while(!outProcessQueue.isEmpty()){
-            Process process = outProcessQueue.poll();
-//            System.out.println("OUT : " + process);
-            if(!assignProcess(process)){
-                readyQueue.add(process);
-            }
-//            System.out.println("outQueue : " +outProcessQueue.size());
-        }
-    }
+
+//    private void outProcessRun(){
+//        while(!outProcessQueue.isEmpty()){
+//            Process process = outProcessQueue.poll();
+////            System.out.println("OUT : " + process);
+//            if(!assignProcess(process)){
+//                readyQueue.add(process);
+//            }
+////            System.out.println("outQueue : " +outProcessQueue.size());
+//        }
+//    }
     /**
      * 스케줄링을 실행한다.
      * 프로세스리스트에서 작업량이 남은 프로세스가 존재한다면
@@ -204,7 +214,7 @@ public class CPU {
 
         while(remainWorking() && embeddedCore.size() != 0) {
             int size = 0;
-            this.outProcessQueue = new LinkedList<Process>();
+//            this.outProcessQueue = new LinkedList<Process>();
             Queue<Process> selectedProcess = new LinkedList<Process>();
             Queue<Process> schedulerQueue = new LinkedList<Process>();
 
@@ -214,6 +224,8 @@ public class CPU {
                 System.out.println(String.format("==========TIME : %d==========\n", time));
                 printProcessList();
             }
+
+
             selectedProcess.addAll(scheduler.running(readyQueue, pCoreCount, eCoreCount,time));
             size = selectedProcess.size();
 
@@ -223,8 +235,8 @@ public class CPU {
                     schedulerQueue.add(process);
                 }
             }
-            
-            outProcessRun();
+//
+//            outProcessRun();
 
 //            printCoreStatuses();//running
 
@@ -232,6 +244,8 @@ public class CPU {
             readyQueue = schedulerQueue;
 
             if(debugFlag){
+                if(time > 10)
+                    break;
                 printReadyQueue();
                 printCoreStatuses();
                 printProcessList();
@@ -243,12 +257,22 @@ public class CPU {
             time += 1;
 
             cleanCores(time);
+            historyData.addReadyQueueHistory(readyQueue);
         }
         if(debugFlag) {
             System.out.println("CPU.run end\n");
             printCoreStatuses();//end
         }
+
+        finishRunning();
     }
+
+    void finishRunning(){
+        for(Core core:embeddedCore){
+            historyData.addCoreInfo(core.getHistory(), core.getUsingElectricityHistory());
+        }
+    }
+
 
     /**
      * 전체 프로세스를 조사하여, 잔여 작업량이 남은 경우 -> true
@@ -278,6 +302,14 @@ public class CPU {
             core.emptyProcess();
 
         }
+    }
+
+    public HistoryData getHistoryData() {
+        return historyData;
+    }
+
+    public void setHistoryData(HistoryData historyData) {
+        this.historyData = historyData;
     }
 
     /**
@@ -311,7 +343,7 @@ public class CPU {
 
     public void printProcessList(){
         for(Process process : processList){
-            System.out.println(String.format("Process id : %d", process.getPid()));
+            System.out.println(String.format("Process id : %s", process.getPid()));
             System.out.println(String.format("AT : %d, BT : %d", process.getArrivalTime(), process.getBurstTime()));
             System.out.println(String.format("Remain Work : %d", process.getRemainWork()));
             System.out.println(String.format("Running Time : %d\n", process.getRunningTime(time)));

@@ -28,7 +28,7 @@ public class Main {
         mainCPU.printEndCoreStatus();
 
         for(Process process:processList1) {
-            System.out.println(process.getProcessData());
+            System.out.println(process);
         }
 
 
@@ -47,7 +47,7 @@ public class Main {
 
         System.out.println("END");
         for(Process process:processList2) {
-            System.out.println(process.getProcessData());
+            System.out.println(process);
         }
     }
 }
