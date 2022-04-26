@@ -70,6 +70,14 @@ public class CPU {
 
         return E_CORE_TYPE;
     }
+
+    public static int recommendCore(Process process){
+        if(process.getBurstTime() >= 4)
+            return 2;
+        else
+            return 1;
+    }
+
     private void changeProcess(Core core, Process process){
         core.emptyProcess();
         core.setAssignedProcess(process, time);
@@ -185,6 +193,7 @@ public class CPU {
                 readyQueue.add(p);
         }
     }
+
 
 //    private void outProcessRun(){
 //        while(!outProcessQueue.isEmpty()){
