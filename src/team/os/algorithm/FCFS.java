@@ -17,27 +17,36 @@ public class FCFS implements SchedulingAlgorithm {
 
 		double totalPowerConsumption = 0;
 		int totalBurstTime = 0;
-		
+
 		// 히스토리를 생성한다.
 		History history = new History();
 
 		// 프로세스 리스트를 큐로 복사한다.
-		Queue<Process> processQueue = new LinkedList<Process>(processList);
+		// Queue<Process> readyQueue = new LinkedList<Process>(processList);
+		Queue<Process> readyQueue = new LinkedList<Process>();
 
 		// 모든 프로세스가 끝나지 않았다면
-		while(!Simulator.isTerminatedAllProcess(processQueue)) {
-
-			System.out.printf("Total Burst Time: %d\n", totalBurstTime);
+		// while(!Simulator.isTerminatedAllProcess(readyQueue)) {
+		while(!Simulator.isTerminatedAllProcess(processList)) {
 
 			// 수행 시간을 1초 증가한다.
 			totalBurstTime++;
 
+			System.out.printf("Total Burst Time: %d\n", totalBurstTime);
+
+			// Arrival Time에 도달한 프로세스를 Ready Queue에 추가한다.
+			for(Process process : processList)
+				
+				if(process.getArrivalTime() == totalBurstTime)
+					
+					readyQueue.offer(process);
+
 			// 큐가 변하기 때문에 크기를 미리 저장한다.
-			int processQueueSize = processQueue.size();
+			int processQueueSize = readyQueue.size();
 
 			System.out.print("Queue: {");
 
-			for(Process process : processQueue)
+			for(Process process : readyQueue)
 
 				System.out.printf("%s, ", process.getPID());
 
@@ -61,7 +70,7 @@ public class FCFS implements SchedulingAlgorithm {
 				int coreIndex = -1;
 
 				// 큐에서 프로세스를 선택한다.
-				Process process = processQueue.poll();
+				Process process = readyQueue.poll();
 
 				// 프로세스에 할당된 코어가 없다면
 				if((coreIndex = process.getWorkingCoreIndex()) == -1) {
@@ -78,7 +87,7 @@ public class FCFS implements SchedulingAlgorithm {
 				// 사용 가능한 코어가 없으면 프로세스를 큐에 입력하고 컨티뉴한다.
 				if(coreIndex == -1) {
 
-					processQueue.offer(process);
+					readyQueue.offer(process);
 					continue;
 
 				}
@@ -94,11 +103,11 @@ public class FCFS implements SchedulingAlgorithm {
 
 				// 프로세스의 남은 작업 시간을 코어의 파워만큼 감소한다.
 				process.decreaseRemainBurstTime(core.getPower());
-				
-				
-				
-				
-				
+
+
+
+
+
 				System.out.println(process.getRemainBurstTime());
 
 				// 프로세스의 남은 작업시간이 0 이하라면
@@ -115,12 +124,12 @@ public class FCFS implements SchedulingAlgorithm {
 					System.out.printf("%s is terminated.\n", process.getPID());
 
 				}
-				
+
 				// 프로세스의 남은 작업시간이 1 이상이라면
 				else {
 
 					// 프로세스를 큐에 삽입한다.
-					processQueue.offer(process);
+					readyQueue.offer(process);
 
 					System.out.printf("%s is offered.\n", process.getPID());
 
@@ -137,7 +146,7 @@ public class FCFS implements SchedulingAlgorithm {
 			System.out.println();
 
 			// 히스토리를 추가한다.
-			history.addPage(processList, processQueue);
+			history.addPage(processList, readyQueue);
 
 		}
 

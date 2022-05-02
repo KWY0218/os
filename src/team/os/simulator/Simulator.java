@@ -110,7 +110,7 @@ public class Simulator {
 	 * @return All of process in process queue were terminated
 	 */
 
-	public static boolean isTerminatedAllProcess(Queue<Process> processQueue) {
+	public static boolean isTerminatedAllProcess(List<Process> processQueue) {
 
 		for(Process process : processQueue)
 
